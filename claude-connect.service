@@ -1,0 +1,19 @@
+[Unit]
+Description=Claude Connect MCP Server
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=chadpeppers
+Group=staff
+WorkingDirectory=/Users/chadpeppers/Projects/claude_connect
+ExecStart=/opt/homebrew/bin/php bin/hyperf.php start
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+EnvironmentFile=/Users/chadpeppers/Projects/claude_connect/.env
+
+[Install]
+WantedBy=multi-user.target

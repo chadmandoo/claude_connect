@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: redis/redis-stack-server:latest
+    container_name: claude-connect-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      - REDIS_ARGS=--appendonly yes
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: claude-connect-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql
+      - ./migrations/002_agents_and_rooms.sql:/docker-entrypoint-initdb.d/002_agents_and_rooms.sql
+    environment:
+      POSTGRES_DB: claude_connect
+      POSTGRES_USER: claude_connect
+      POSTGRES_PASSWORD: claude_connect
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claude_connect"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:
+  postgres_data:
