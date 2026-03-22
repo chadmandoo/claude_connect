@@ -6,7 +6,7 @@ namespace Tests\Unit\StateMachine;
 
 use App\StateMachine\TaskManager;
 use App\StateMachine\TaskState;
-use App\Storage\RedisStore;
+use App\Storage\PostgresStore;
 use App\Storage\SwooleTableCache;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -19,24 +19,24 @@ class TaskManagerTest extends TestCase
     use ReflectionHelper;
 
     private TaskManager $manager;
-    private RedisStore|Mockery\MockInterface $redis;
+    private PostgresStore|Mockery\MockInterface $store;
     private SwooleTableCache|Mockery\MockInterface $cache;
 
     protected function setUp(): void
     {
-        $this->redis = Mockery::mock(RedisStore::class);
+        $this->store = Mockery::mock(PostgresStore::class);
         $this->cache = Mockery::mock(SwooleTableCache::class);
 
         $this->manager = new TaskManager();
-        $this->setProperty($this->manager, 'redis', $this->redis);
+        $this->setProperty($this->manager, 'store', $this->store);
         $this->setProperty($this->manager, 'cache', $this->cache);
     }
 
     public function testCreateTaskReturnsUuid(): void
     {
-        $this->redis->shouldReceive('createTask')->once();
+        $this->store->shouldReceive('createTask')->once();
         $this->cache->shouldReceive('setActiveTask')->once();
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
 
         $taskId = $this->manager->createTask('Hello Claude');
 
@@ -48,7 +48,7 @@ class TaskManagerTest extends TestCase
 
     public function testCreateTaskStoresCorrectData(): void
     {
-        $this->redis->shouldReceive('createTask')
+        $this->store->shouldReceive('createTask')
             ->once()
             ->withArgs(function (string $id, array $data) {
                 return $data['prompt'] === 'test prompt'
@@ -63,7 +63,7 @@ class TaskManagerTest extends TestCase
         $this->cache->shouldReceive('setActiveTask')
             ->once()
             ->withArgs(fn($id, $state) => $state === 'pending');
-        $this->redis->shouldReceive('addTaskHistory')
+        $this->store->shouldReceive('addTaskHistory')
             ->once()
             ->withArgs(function ($id, $entry) {
                 return $entry['from'] === null && $entry['to'] === 'pending';
@@ -74,35 +74,35 @@ class TaskManagerTest extends TestCase
 
     public function testCreateTaskWithOptions(): void
     {
-        $this->redis->shouldReceive('createTask')
+        $this->store->shouldReceive('createTask')
             ->once()
             ->withArgs(function ($id, $data) {
                 $options = json_decode($data['options'], true);
                 return $options['max_turns'] === 10 && $options['model'] === 'opus';
             });
         $this->cache->shouldReceive('setActiveTask')->once();
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
 
         $this->manager->createTask('prompt', null, ['max_turns' => 10, 'model' => 'opus']);
     }
 
     public function testCreateTaskWithNullSessionIdStoresEmptyString(): void
     {
-        $this->redis->shouldReceive('createTask')
+        $this->store->shouldReceive('createTask')
             ->once()
             ->withArgs(fn($id, $data) => $data['session_id'] === '');
         $this->cache->shouldReceive('setActiveTask')->once();
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
 
         $this->manager->createTask('prompt');
     }
 
     public function testTransitionPendingToRunning(): void
     {
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->once()
             ->andReturn(['state' => 'pending', 'started_at' => 0]);
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->withArgs(function ($id, $data) {
                 return $data['state'] === 'running'
@@ -112,23 +112,23 @@ class TaskManagerTest extends TestCase
         $this->cache->shouldReceive('updateTaskState')
             ->once()
             ->with('task-1', 'running');
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
 
         $this->manager->transition('task-1', TaskState::RUNNING);
     }
 
     public function testTransitionRunningToCompletedSetsCompletedAt(): void
     {
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->once()
             ->andReturn(['state' => 'running', 'started_at' => 1000]);
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->withArgs(function ($id, $data) {
                 return $data['state'] === 'completed' && isset($data['completed_at']);
             });
         $this->cache->shouldReceive('updateTaskState')->once();
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
         $this->cache->shouldReceive('removeActiveTask')
             ->once()
             ->with('task-1');
@@ -138,11 +138,11 @@ class TaskManagerTest extends TestCase
 
     public function testTransitionToTerminalRemovesFromCache(): void
     {
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->andReturn(['state' => 'running', 'started_at' => 1000]);
-        $this->redis->shouldReceive('updateTask')->once();
+        $this->store->shouldReceive('updateTask')->once();
         $this->cache->shouldReceive('updateTaskState')->once();
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
         $this->cache->shouldReceive('removeActiveTask')->once()->with('task-1');
 
         $this->manager->transition('task-1', TaskState::FAILED);
@@ -150,7 +150,7 @@ class TaskManagerTest extends TestCase
 
     public function testTransitionThrowsOnInvalidTransition(): void
     {
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->andReturn(['state' => 'pending']);
 
         $this->expectException(\RuntimeException::class);
@@ -161,7 +161,7 @@ class TaskManagerTest extends TestCase
 
     public function testTransitionThrowsWhenTaskNotFound(): void
     {
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->andReturn(null);
 
         $this->expectException(\RuntimeException::class);
@@ -173,29 +173,29 @@ class TaskManagerTest extends TestCase
     public function testTransitionDoesNotOverrideStartedAt(): void
     {
         // Task already has started_at set from a previous run
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->andReturn(['state' => 'pending', 'started_at' => 5000]);
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->withArgs(function ($id, $data) {
                 // started_at should NOT be in update since it's already > 0
                 return !isset($data['started_at']);
             });
         $this->cache->shouldReceive('updateTaskState')->once();
-        $this->redis->shouldReceive('addTaskHistory')->once();
+        $this->store->shouldReceive('addTaskHistory')->once();
 
         $this->manager->transition('task-1', TaskState::RUNNING);
     }
 
     public function testTransitionWithExtra(): void
     {
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->andReturn(['state' => 'pending', 'started_at' => 0]);
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->withArgs(fn($id, $data) => $data['custom_field'] === 'value');
         $this->cache->shouldReceive('updateTaskState')->once();
-        $this->redis->shouldReceive('addTaskHistory')
+        $this->store->shouldReceive('addTaskHistory')
             ->once()
             ->withArgs(fn($id, $entry) => $entry['extra'] === ['custom_field' => 'value']);
 
@@ -207,7 +207,7 @@ class TaskManagerTest extends TestCase
         $this->cache->shouldReceive('getActiveTask')
             ->with('task-1')
             ->andReturn(['task_id' => 'task-1', 'state' => 'running']);
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->with('task-1')
             ->once()
             ->andReturn(['id' => 'task-1', 'state' => 'running', 'prompt' => 'hello']);
@@ -218,12 +218,12 @@ class TaskManagerTest extends TestCase
         $this->assertSame('hello', $result['prompt']);
     }
 
-    public function testGetTaskFallsBackToRedis(): void
+    public function testGetTaskFallsBackToStore(): void
     {
         $this->cache->shouldReceive('getActiveTask')
             ->with('task-1')
             ->andReturn(null);
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->with('task-1')
             ->once()
             ->andReturn(['id' => 'task-1', 'state' => 'completed']);
@@ -236,16 +236,16 @@ class TaskManagerTest extends TestCase
     public function testGetTaskReturnsNullWhenNotFound(): void
     {
         $this->cache->shouldReceive('getActiveTask')->andReturn(null);
-        $this->redis->shouldReceive('getTask')->andReturn(null);
+        $this->store->shouldReceive('getTask')->andReturn(null);
 
         $this->assertNull($this->manager->getTask('missing'));
     }
 
-    public function testGetTaskCacheHitButRedisMissFallsBack(): void
+    public function testGetTaskCacheHitButStoreMissFallsBack(): void
     {
         $this->cache->shouldReceive('getActiveTask')
             ->andReturn(['task_id' => 'task-1']);
-        $this->redis->shouldReceive('getTask')
+        $this->store->shouldReceive('getTask')
             ->with('task-1')
             ->twice()
             ->andReturn(null, null);
@@ -256,7 +256,7 @@ class TaskManagerTest extends TestCase
 
     public function testSetTaskPid(): void
     {
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->with('task-1', ['pid' => 12345]);
         $this->cache->shouldReceive('updateTaskPid')
@@ -268,7 +268,7 @@ class TaskManagerTest extends TestCase
 
     public function testSetTaskResult(): void
     {
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->with('task-1', ['result' => 'Hello world']);
 
@@ -277,7 +277,7 @@ class TaskManagerTest extends TestCase
 
     public function testSetTaskError(): void
     {
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->with('task-1', ['error' => 'Something broke']);
 
@@ -286,7 +286,7 @@ class TaskManagerTest extends TestCase
 
     public function testListTasks(): void
     {
-        $this->redis->shouldReceive('listTasks')
+        $this->store->shouldReceive('listTasks')
             ->once()
             ->with('running', 10)
             ->andReturn([['id' => 't1']]);
@@ -298,7 +298,7 @@ class TaskManagerTest extends TestCase
 
     public function testGetTaskTransitions(): void
     {
-        $this->redis->shouldReceive('getTaskHistory')
+        $this->store->shouldReceive('getTaskHistory')
             ->once()
             ->with('task-1')
             ->andReturn([['from' => null, 'to' => 'pending']]);
@@ -310,7 +310,7 @@ class TaskManagerTest extends TestCase
 
     public function testSetClaudeSessionId(): void
     {
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->with('task-1', ['claude_session_id' => 'claude-sess-abc']);
 
@@ -319,7 +319,7 @@ class TaskManagerTest extends TestCase
 
     public function testSetParentTaskId(): void
     {
-        $this->redis->shouldReceive('updateTask')
+        $this->store->shouldReceive('updateTask')
             ->once()
             ->with('task-1', ['parent_task_id' => 'parent-123']);
 

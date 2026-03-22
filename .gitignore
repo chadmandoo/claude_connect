@@ -31,5 +31,10 @@ Thumbs.db
 # Custom prompts (user-specific agents)
 prompts/custom/
 
+# Pipeline working docs (managed by Forge)
+docs/planning/pipeline/active/*.md
+docs/planning/pipeline/completed/*.md
+docs/planning/pipeline/tmp/
+
 # Claude local settings
 .claude/

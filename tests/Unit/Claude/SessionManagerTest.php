@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Claude;
 
 use App\Claude\SessionManager;
-use App\Storage\RedisStore;
+use App\Storage\PostgresStore;
 use App\Storage\SwooleTableCache;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -18,22 +18,22 @@ class SessionManagerTest extends TestCase
     use ReflectionHelper;
 
     private SessionManager $manager;
-    private RedisStore|Mockery\MockInterface $redis;
+    private PostgresStore|Mockery\MockInterface $store;
     private SwooleTableCache|Mockery\MockInterface $cache;
 
     protected function setUp(): void
     {
-        $this->redis = Mockery::mock(RedisStore::class);
+        $this->store = Mockery::mock(PostgresStore::class);
         $this->cache = Mockery::mock(SwooleTableCache::class);
 
         $this->manager = new SessionManager();
-        $this->setProperty($this->manager, 'redis', $this->redis);
+        $this->setProperty($this->manager, 'store', $this->store);
         $this->setProperty($this->manager, 'cache', $this->cache);
     }
 
     public function testCreateSessionReturnsUuid(): void
     {
-        $this->redis->shouldReceive('createSession')->once();
+        $this->store->shouldReceive('createSession')->once();
         $this->cache->shouldReceive('setActiveSession')->once();
 
         $sessionId = $this->manager->createSession();
@@ -46,7 +46,7 @@ class SessionManagerTest extends TestCase
 
     public function testCreateSessionStoresCorrectData(): void
     {
-        $this->redis->shouldReceive('createSession')
+        $this->store->shouldReceive('createSession')
             ->once()
             ->withArgs(function (string $id, array $data) {
                 return $data['id'] === $id
@@ -63,7 +63,7 @@ class SessionManagerTest extends TestCase
 
     public function testGetSession(): void
     {
-        $this->redis->shouldReceive('getSession')
+        $this->store->shouldReceive('getSession')
             ->with('sess-1')
             ->once()
             ->andReturn(['id' => 'sess-1', 'state' => 'active']);
@@ -75,7 +75,7 @@ class SessionManagerTest extends TestCase
 
     public function testGetSessionReturnsNull(): void
     {
-        $this->redis->shouldReceive('getSession')
+        $this->store->shouldReceive('getSession')
             ->with('missing')
             ->once()
             ->andReturn(null);
@@ -85,7 +85,7 @@ class SessionManagerTest extends TestCase
 
     public function testUpdateSession(): void
     {
-        $this->redis->shouldReceive('updateSession')
+        $this->store->shouldReceive('updateSession')
             ->once()
             ->withArgs(function (string $id, array $data) {
                 return $id === 'sess-1'
@@ -101,7 +101,7 @@ class SessionManagerTest extends TestCase
 
     public function testUpdateSessionWithoutTaskId(): void
     {
-        $this->redis->shouldReceive('updateSession')->once();
+        $this->store->shouldReceive('updateSession')->once();
         $this->cache->shouldReceive('updateSessionActivity')
             ->once()
             ->with('sess-1', '');
@@ -111,7 +111,7 @@ class SessionManagerTest extends TestCase
 
     public function testCloseSession(): void
     {
-        $this->redis->shouldReceive('updateSession')
+        $this->store->shouldReceive('updateSession')
             ->once()
             ->withArgs(function (string $id, array $data) {
                 return $id === 'sess-1' && $data['state'] === 'closed';
@@ -126,7 +126,7 @@ class SessionManagerTest extends TestCase
     public function testListSessions(): void
     {
         $sessions = [['id' => 's1'], ['id' => 's2']];
-        $this->redis->shouldReceive('listSessions')
+        $this->store->shouldReceive('listSessions')
             ->once()
             ->andReturn($sessions);
 
@@ -137,7 +137,7 @@ class SessionManagerTest extends TestCase
 
     public function testArchiveSession(): void
     {
-        $this->redis->shouldReceive('updateSession')
+        $this->store->shouldReceive('updateSession')
             ->once()
             ->withArgs(function (string $id, array $data) {
                 return $id === 'sess-1' && $data['state'] === 'archived';

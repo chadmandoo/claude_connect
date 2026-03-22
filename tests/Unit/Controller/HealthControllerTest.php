@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Controller;
 
 use App\Controller\HealthController;
+use App\Storage\PostgresStore;
 use App\Storage\RedisStore;
 use App\Storage\SwooleTableCache;
 use Mockery;
@@ -18,22 +19,26 @@ class HealthControllerTest extends TestCase
     use ReflectionHelper;
 
     private HealthController $controller;
+    private PostgresStore|Mockery\MockInterface $store;
     private RedisStore|Mockery\MockInterface $redis;
     private SwooleTableCache|Mockery\MockInterface $cache;
 
     protected function setUp(): void
     {
+        $this->store = Mockery::mock(PostgresStore::class);
         $this->redis = Mockery::mock(RedisStore::class);
         $this->cache = Mockery::mock(SwooleTableCache::class);
 
         $this->controller = new HealthController();
+        $this->setProperty($this->controller, 'store', $this->store);
         $this->setProperty($this->controller, 'redis', $this->redis);
         $this->setProperty($this->controller, 'cache', $this->cache);
     }
 
-    public function testHealthyWhenRedisOk(): void
+    public function testHealthyWhenAllServicesOk(): void
     {
         $this->redis->shouldReceive('ping')->andReturn(true);
+        $this->store->shouldReceive('ping')->andReturn(true);
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
 
@@ -41,6 +46,7 @@ class HealthControllerTest extends TestCase
 
         $this->assertSame('healthy', $result['status']);
         $this->assertSame('ok', $result['checks']['redis']);
+        $this->assertSame('ok', $result['checks']['postgres']);
         $this->assertSame('ok', $result['checks']['swoole']);
         $this->assertSame(0, $result['stats']['active_tasks']);
         $this->assertSame(0, $result['stats']['active_sessions']);
@@ -51,6 +57,36 @@ class HealthControllerTest extends TestCase
     public function testDegradedWhenRedisDown(): void
     {
         $this->redis->shouldReceive('ping')->andReturn(false);
+        $this->store->shouldReceive('ping')->andReturn(true);
+        $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
+        $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
+
+        $result = $this->controller->index();
+
+        $this->assertSame('degraded', $result['status']);
+        $this->assertSame('error', $result['checks']['redis']);
+        $this->assertSame('ok', $result['checks']['postgres']);
+    }
+
+    public function testDegradedWhenPostgresDown(): void
+    {
+        $this->redis->shouldReceive('ping')->andReturn(true);
+        $this->store->shouldReceive('ping')->andReturn(false);
+        $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
+        $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
+
+        $result = $this->controller->index();
+
+        $this->assertSame('degraded', $result['status']);
+        $this->assertSame('ok', $result['checks']['redis']);
+        $this->assertSame('error', $result['checks']['postgres']);
+    }
+
+    public function testDegradedWhenRedisThrows(): void
+    {
+        $this->redis->shouldReceive('ping')
+            ->andThrow(new \RuntimeException('Connection refused'));
+        $this->store->shouldReceive('ping')->andReturn(true);
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
 
@@ -60,9 +96,10 @@ class HealthControllerTest extends TestCase
         $this->assertSame('error', $result['checks']['redis']);
     }
 
-    public function testDegradedWhenRedisThrows(): void
+    public function testDegradedWhenPostgresThrows(): void
     {
-        $this->redis->shouldReceive('ping')
+        $this->redis->shouldReceive('ping')->andReturn(true);
+        $this->store->shouldReceive('ping')
             ->andThrow(new \RuntimeException('Connection refused'));
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
@@ -70,12 +107,13 @@ class HealthControllerTest extends TestCase
         $result = $this->controller->index();
 
         $this->assertSame('degraded', $result['status']);
-        $this->assertSame('error', $result['checks']['redis']);
+        $this->assertSame('error', $result['checks']['postgres']);
     }
 
     public function testReportsActiveTasksCount(): void
     {
         $this->redis->shouldReceive('ping')->andReturn(true);
+        $this->store->shouldReceive('ping')->andReturn(true);
         $this->cache->shouldReceive('getActiveTasks')->andReturn([
             'task-1' => ['task_id' => 'task-1'],
             'task-2' => ['task_id' => 'task-2'],
@@ -90,6 +128,7 @@ class HealthControllerTest extends TestCase
     public function testReportsActiveSessionsCount(): void
     {
         $this->redis->shouldReceive('ping')->andReturn(true);
+        $this->store->shouldReceive('ping')->andReturn(true);
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([
             'sess-1' => ['session_id' => 'sess-1'],
@@ -103,6 +142,7 @@ class HealthControllerTest extends TestCase
     public function testTimestampIsIso8601(): void
     {
         $this->redis->shouldReceive('ping')->andReturn(true);
+        $this->store->shouldReceive('ping')->andReturn(true);
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
 

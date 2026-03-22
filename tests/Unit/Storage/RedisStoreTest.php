@@ -26,260 +26,265 @@ class RedisStoreTest extends TestCase
         $this->setProperty($this->store, 'redis', $this->redis);
     }
 
-    // Task operations
+    // =========================================================================
+    // Web auth token operations
+    // =========================================================================
 
-    public function testCreateTask(): void
+    public function testSetWebToken(): void
     {
-        $taskId = 'task-123';
-        $data = ['id' => $taskId, 'prompt' => 'hello'];
-
-        $this->redis->shouldReceive('hMSet')
+        $this->redis->shouldReceive('setex')
             ->once()
-            ->with('cc:tasks:task-123', $data);
-        $this->redis->shouldReceive('zAdd')
-            ->once()
-            ->with('cc:task_index', Mockery::type('int'), $taskId);
+            ->with('cc:web:token:abc123', 86400, '1');
 
-        $this->store->createTask($taskId, $data);
+        $this->store->setWebToken('abc123');
     }
 
-    public function testGetTaskReturnsData(): void
+    public function testSetWebTokenWithCustomTtl(): void
     {
-        $this->redis->shouldReceive('hGetAll')
+        $this->redis->shouldReceive('setex')
             ->once()
-            ->with('cc:tasks:task-123')
-            ->andReturn(['id' => 'task-123', 'prompt' => 'hello']);
+            ->with('cc:web:token:abc123', 3600, '1');
 
-        $result = $this->store->getTask('task-123');
-
-        $this->assertSame(['id' => 'task-123', 'prompt' => 'hello'], $result);
+        $this->store->setWebToken('abc123', 3600);
     }
 
-    public function testGetTaskReturnsNullWhenEmpty(): void
+    public function testHasWebTokenReturnsTrue(): void
     {
-        $this->redis->shouldReceive('hGetAll')
+        $this->redis->shouldReceive('exists')
             ->once()
-            ->with('cc:tasks:task-missing')
-            ->andReturn([]);
+            ->with('cc:web:token:abc123')
+            ->andReturn(1);
 
-        $result = $this->store->getTask('task-missing');
-
-        $this->assertNull($result);
+        $this->assertTrue($this->store->hasWebToken('abc123'));
     }
 
-    public function testUpdateTask(): void
+    public function testHasWebTokenReturnsFalse(): void
     {
-        $this->redis->shouldReceive('hMSet')
+        $this->redis->shouldReceive('exists')
             ->once()
-            ->with('cc:tasks:task-123', ['state' => 'running']);
+            ->with('cc:web:token:missing')
+            ->andReturn(0);
 
-        $this->store->updateTask('task-123', ['state' => 'running']);
+        $this->assertFalse($this->store->hasWebToken('missing'));
     }
 
-    public function testDeleteTask(): void
+    public function testDeleteWebToken(): void
     {
         $this->redis->shouldReceive('del')
             ->once()
-            ->with('cc:tasks:task-123', 'cc:tasks:task-123:history');
-        $this->redis->shouldReceive('zRem')
-            ->once()
-            ->with('cc:task_index', 'task-123');
+            ->with('cc:web:token:abc123');
 
-        $this->store->deleteTask('task-123');
+        $this->store->deleteWebToken('abc123');
     }
 
-    // Task history
+    // =========================================================================
+    // Distributed locks
+    // =========================================================================
 
-    public function testAddTaskHistory(): void
+    public function testAcquireLockSuccess(): void
     {
-        $entry = ['from' => 'pending', 'to' => 'running', 'timestamp' => 1000];
+        $this->redis->shouldReceive('set')
+            ->once()
+            ->with('cc:my-lock', Mockery::type('string'), ['NX', 'EX' => 30])
+            ->andReturn(true);
+
+        $this->assertTrue($this->store->acquireLock('my-lock', 30));
+    }
+
+    public function testAcquireLockFailure(): void
+    {
+        $this->redis->shouldReceive('set')
+            ->once()
+            ->with('cc:my-lock', Mockery::type('string'), ['NX', 'EX' => 30])
+            ->andReturn(false);
+
+        $this->assertFalse($this->store->acquireLock('my-lock', 30));
+    }
+
+    public function testReleaseLock(): void
+    {
+        $this->redis->shouldReceive('del')
+            ->once()
+            ->with('cc:my-lock');
+
+        $this->store->releaseLock('my-lock');
+    }
+
+    public function testHasLockReturnsTrue(): void
+    {
+        $this->redis->shouldReceive('exists')
+            ->once()
+            ->with('cc:my-lock')
+            ->andReturn(1);
+
+        $this->assertTrue($this->store->hasLock('my-lock'));
+    }
+
+    public function testHasLockReturnsFalse(): void
+    {
+        $this->redis->shouldReceive('exists')
+            ->once()
+            ->with('cc:my-lock')
+            ->andReturn(0);
+
+        $this->assertFalse($this->store->hasLock('my-lock'));
+    }
+
+    // =========================================================================
+    // Chat history operations
+    // =========================================================================
+
+    public function testAppendChatHistory(): void
+    {
+        $message = ['role' => 'user', 'content' => 'hello'];
 
         $this->redis->shouldReceive('rPush')
             ->once()
-            ->with('cc:tasks:task-123:history', json_encode($entry));
+            ->with('cc:chat_history:conv-1', json_encode($message));
 
-        $this->store->addTaskHistory('task-123', $entry);
+        $this->store->appendChatHistory('conv-1', $message);
     }
 
-    public function testGetTaskHistory(): void
+    public function testGetChatHistory(): void
     {
-        $entries = [
-            json_encode(['from' => null, 'to' => 'pending']),
-            json_encode(['from' => 'pending', 'to' => 'running']),
-        ];
+        $this->redis->shouldReceive('lLen')
+            ->once()
+            ->with('cc:chat_history:conv-1')
+            ->andReturn(3);
 
         $this->redis->shouldReceive('lRange')
             ->once()
-            ->with('cc:tasks:task-123:history', 0, -1)
-            ->andReturn($entries);
+            ->with('cc:chat_history:conv-1', 0, -1)
+            ->andReturn([
+                json_encode(['role' => 'user', 'content' => 'hello']),
+                json_encode(['role' => 'assistant', 'content' => 'hi']),
+                json_encode(['role' => 'user', 'content' => 'bye']),
+            ]);
 
-        $result = $this->store->getTaskHistory('task-123');
+        $result = $this->store->getChatHistory('conv-1', 50);
 
-        $this->assertCount(2, $result);
-        $this->assertNull($result[0]['from']);
-        $this->assertSame('pending', $result[0]['to']);
-        $this->assertSame('pending', $result[1]['from']);
-        $this->assertSame('running', $result[1]['to']);
+        $this->assertCount(3, $result);
+        $this->assertSame('user', $result[0]['role']);
+        $this->assertSame('hello', $result[0]['content']);
     }
 
-    public function testGetTaskHistoryReturnsEmptyForNoHistory(): void
+    public function testGetChatHistoryWithLimit(): void
     {
+        $this->redis->shouldReceive('lLen')
+            ->once()
+            ->with('cc:chat_history:conv-1')
+            ->andReturn(5);
+
+        $this->redis->shouldReceive('lRange')
+            ->once()
+            ->with('cc:chat_history:conv-1', 3, -1)
+            ->andReturn([
+                json_encode(['role' => 'user', 'content' => 'msg4']),
+                json_encode(['role' => 'assistant', 'content' => 'msg5']),
+            ]);
+
+        $result = $this->store->getChatHistory('conv-1', 2);
+
+        $this->assertCount(2, $result);
+    }
+
+    public function testGetChatHistoryReturnsEmptyWhenNoData(): void
+    {
+        $this->redis->shouldReceive('lLen')
+            ->once()
+            ->with('cc:chat_history:conv-1')
+            ->andReturn(0);
+
         $this->redis->shouldReceive('lRange')
             ->once()
             ->andReturn(false);
 
-        $result = $this->store->getTaskHistory('task-missing');
+        $result = $this->store->getChatHistory('conv-1');
 
         $this->assertSame([], $result);
     }
 
-    // Session operations
-
-    public function testCreateSession(): void
+    public function testTrimChatHistory(): void
     {
-        $this->redis->shouldReceive('hMSet')
+        $this->redis->shouldReceive('lLen')
             ->once()
-            ->with('cc:sessions:sess-1', ['id' => 'sess-1']);
+            ->with('cc:chat_history:conv-1')
+            ->andReturn(100);
 
-        $this->store->createSession('sess-1', ['id' => 'sess-1']);
+        $this->redis->shouldReceive('lTrim')
+            ->once()
+            ->with('cc:chat_history:conv-1', 80, -1);
+
+        $this->store->trimChatHistory('conv-1', 20);
     }
 
-    public function testGetSession(): void
+    public function testTrimChatHistoryNoOpWhenUnderLimit(): void
     {
-        $this->redis->shouldReceive('hGetAll')
+        $this->redis->shouldReceive('lLen')
             ->once()
-            ->with('cc:sessions:sess-1')
-            ->andReturn(['id' => 'sess-1', 'state' => 'active']);
+            ->with('cc:chat_history:conv-1')
+            ->andReturn(5);
 
-        $result = $this->store->getSession('sess-1');
+        // lTrim should NOT be called when total <= keep
+        $this->redis->shouldNotReceive('lTrim');
 
-        $this->assertSame('active', $result['state']);
+        $this->store->trimChatHistory('conv-1', 10);
     }
 
-    public function testGetSessionReturnsNull(): void
-    {
-        $this->redis->shouldReceive('hGetAll')
-            ->once()
-            ->with('cc:sessions:sess-missing')
-            ->andReturn([]);
-
-        $result = $this->store->getSession('sess-missing');
-
-        $this->assertNull($result);
-    }
-
-    public function testUpdateSession(): void
-    {
-        $this->redis->shouldReceive('hMSet')
-            ->once()
-            ->with('cc:sessions:sess-1', ['state' => 'closed']);
-
-        $this->store->updateSession('sess-1', ['state' => 'closed']);
-    }
-
-    public function testDeleteSession(): void
+    public function testDeleteChatHistory(): void
     {
         $this->redis->shouldReceive('del')
             ->once()
-            ->with('cc:sessions:sess-1');
+            ->with('cc:chat_history:conv-1');
 
-        $this->store->deleteSession('sess-1');
+        $this->store->deleteChatHistory('conv-1');
     }
 
-    public function testListSessions(): void
+    // =========================================================================
+    // Active project state
+    // =========================================================================
+
+    public function testGetActiveProjectIdReturnsId(): void
     {
-        $this->redis->shouldReceive('keys')
+        $this->redis->shouldReceive('get')
             ->once()
-            ->with('cc:sessions:*')
-            ->andReturn(['cc:sessions:s1', 'cc:sessions:s2']);
+            ->with('cc:project:active')
+            ->andReturn('proj-1');
 
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:sessions:s1')
-            ->andReturn(['id' => 's1']);
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:sessions:s2')
-            ->andReturn(['id' => 's2']);
-
-        $result = $this->store->listSessions();
-
-        $this->assertCount(2, $result);
+        $this->assertSame('proj-1', $this->store->getActiveProjectId());
     }
 
-    public function testListSessionsSkipsEmpty(): void
+    public function testGetActiveProjectIdReturnsNullWhenEmpty(): void
     {
-        $this->redis->shouldReceive('keys')
+        $this->redis->shouldReceive('get')
             ->once()
-            ->andReturn(['cc:sessions:s1']);
+            ->with('cc:project:active')
+            ->andReturn(false);
 
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:sessions:s1')
-            ->andReturn([]);
-
-        $result = $this->store->listSessions();
-
-        $this->assertCount(0, $result);
+        $this->assertNull($this->store->getActiveProjectId());
     }
 
-    // Task index
-
-    public function testListTasksNoFilter(): void
+    public function testSetActiveProject(): void
     {
-        $this->redis->shouldReceive('zRevRange')
+        $this->redis->shouldReceive('set')
             ->once()
-            ->with('cc:task_index', 0, 49)
-            ->andReturn(['t1', 't2']);
+            ->with('cc:project:active', 'proj-1');
 
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:tasks:t1')
-            ->andReturn(['id' => 't1', 'state' => 'completed']);
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:tasks:t2')
-            ->andReturn(['id' => 't2', 'state' => 'running']);
-
-        $result = $this->store->listTasks(null, 50);
-
-        $this->assertCount(2, $result);
+        $this->store->setActiveProject('proj-1');
     }
 
-    public function testListTasksWithStateFilter(): void
+    public function testClearActiveProject(): void
     {
-        $this->redis->shouldReceive('zRevRange')
+        $this->redis->shouldReceive('del')
             ->once()
-            ->with('cc:task_index', 0, 9)
-            ->andReturn(['t1', 't2']);
+            ->with('cc:project:active');
 
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:tasks:t1')
-            ->andReturn(['id' => 't1', 'state' => 'completed']);
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:tasks:t2')
-            ->andReturn(['id' => 't2', 'state' => 'running']);
-
-        $result = $this->store->listTasks('completed', 10);
-
-        $this->assertCount(1, $result);
-        $this->assertSame('t1', $result[0]['id']);
+        $this->store->clearActiveProject();
     }
 
-    public function testListTasksSkipsNullTasks(): void
-    {
-        $this->redis->shouldReceive('zRevRange')
-            ->once()
-            ->andReturn(['t1', 't2']);
-
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:tasks:t1')
-            ->andReturn([]);
-        $this->redis->shouldReceive('hGetAll')
-            ->with('cc:tasks:t2')
-            ->andReturn(['id' => 't2', 'state' => 'running']);
-
-        $result = $this->store->listTasks();
-
-        $this->assertCount(1, $result);
-    }
-
+    // =========================================================================
     // Health check
+    // =========================================================================
 
     public function testPingSuccess(): void
     {
