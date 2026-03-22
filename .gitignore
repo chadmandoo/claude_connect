@@ -28,5 +28,8 @@ Thumbs.db
 # Playwright MCP
 .playwright-mcp/
 
+# Custom prompts (user-specific agents)
+prompts/custom/
+
 # Claude local settings
 .claude/

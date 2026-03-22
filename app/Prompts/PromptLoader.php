@@ -25,6 +25,13 @@ class PromptLoader
      */
     public function load(string $name): string
     {
+        // Check custom prompts first (gitignored, user-specific)
+        $customPath = $this->promptDir . '/custom/' . $name . '.md';
+        if (file_exists($customPath)) {
+            $content = file_get_contents($customPath);
+            return $content !== false ? trim($content) : '';
+        }
+
         $path = $this->promptDir . '/' . $name . '.md';
 
         if (!file_exists($path)) {

@@ -192,26 +192,6 @@ class AgentManager
                 'color' => '#ec4899',
                 'icon' => 'wrench',
             ],
-            [
-                'slug' => 'mud-dev',
-                'name' => 'MUD Dev',
-                'description' => 'Thornvale Agent MUD specialist — Python FastAPI game engine, AI agents, world building',
-                'prompt_file' => 'mud_dev',
-                'is_default' => false,
-                'is_system' => true,
-                'color' => '#22c55e',
-                'icon' => 'code',
-            ],
-            [
-                'slug' => 'devops',
-                'name' => 'DevOps',
-                'description' => 'Dev server manager — monitoring, services, Docker, backups, security for 192.168.50.122',
-                'prompt_file' => 'devops',
-                'is_default' => false,
-                'is_system' => true,
-                'color' => '#ef4444',
-                'icon' => 'server',
-            ],
         ];
 
         foreach ($agents as $agentData) {
