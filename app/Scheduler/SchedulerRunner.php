@@ -9,6 +9,7 @@ use App\Storage\SwooleTableCache;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Runs on Worker 0: ticks every 15s, checks for due scheduled jobs, executes them.
@@ -34,6 +35,7 @@ class SchedulerRunner
     private LoggerInterface $logger;
 
     private bool $running = false;
+
     private int $tickInterval = 15;
 
     public function start(): void
@@ -58,7 +60,7 @@ class SchedulerRunner
 
             try {
                 $this->tick();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("SchedulerRunner tick error: {$e->getMessage()}");
             }
         }
@@ -86,7 +88,7 @@ class SchedulerRunner
 
                 try {
                     $result = $this->executeHandler($handler);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $result = "Error: {$e->getMessage()}";
                     $this->logger->error("Scheduler: job '{$jobId}' failed: {$e->getMessage()}");
                 }
@@ -114,6 +116,7 @@ class SchedulerRunner
     {
         $container = \Hyperf\Context\ApplicationContext::getContainer();
         $agent = $container->get(\App\Nightly\NightlyConsolidationAgent::class);
+
         // The nightly agent has its own run method
         return 'Nightly consolidation triggered (runs in its own cycle)';
     }
@@ -122,6 +125,7 @@ class SchedulerRunner
     {
         $container = \Hyperf\Context\ApplicationContext::getContainer();
         $agent = $container->get(\App\Cleanup\CleanupAgent::class);
+
         return 'Cleanup triggered (runs in its own cycle)';
     }
 
@@ -165,7 +169,7 @@ class SchedulerRunner
                     // Notify via system channel
                     $prompt = mb_substr($task['prompt'] ?? '', 0, 80);
                     $this->systemChannel->postTaskUpdate($taskId, 'failed', $prompt . " (stalled {$elapsed}s)");
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->logger->error("Scheduler: failed to force-fail task {$taskId}: {$e->getMessage()}");
                 }
             }
@@ -185,7 +189,7 @@ class SchedulerRunner
                     $this->taskManager->transition($taskId, \App\StateMachine\TaskState::FAILED);
                     $forceFailed++;
                     $this->logger->warning("Scheduler: force-failed stuck pending task {$taskId} ({$elapsed}s pending)");
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->logger->error("Scheduler: failed to force-fail pending task {$taskId}: {$e->getMessage()}");
                 }
             }
@@ -216,6 +220,7 @@ class SchedulerRunner
     {
         $container = \Hyperf\Context\ApplicationContext::getContainer();
         $agent = $container->get(\App\Backup\DatabaseBackupAgent::class);
+
         return $agent->run();
     }
 }

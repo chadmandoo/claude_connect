@@ -6,6 +6,9 @@ namespace App\Nightly;
 
 use Psr\Log\LoggerInterface;
 
+/**
+ * Builds a summarized codebase context string from priority project files for nightly consolidation.
+ */
 class CodebaseContextBuilder
 {
     private const PRIORITY_FILES = [

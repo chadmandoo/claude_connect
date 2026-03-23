@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace App\Embedding;
 
+use Generator;
 use Hyperf\Redis\Redis;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Redis-backed vector store using RediSearch HNSW indexes for memory embeddings.
+ *
+ * Manages upsert, deletion, KNN similarity search, and neighbor lookups for
+ * embedded memory vectors with tag-based filtering support.
+ */
 class VectorStore
 {
     private const PREFIX = 'cc:memvec:';
@@ -29,8 +37,9 @@ class VectorStore
             // Check if index exists
             $this->redis->rawCommand('FT.INFO', self::INDEX_NAME);
             $this->logger->debug('VectorStore: index already exists');
+
             return;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Index doesn't exist, create it
         }
 
@@ -38,29 +47,48 @@ class VectorStore
             $this->redis->rawCommand(
                 'FT.CREATE',
                 self::INDEX_NAME,
-                'ON', 'HASH',
-                'PREFIX', '1', self::PREFIX,
+                'ON',
+                'HASH',
+                'PREFIX',
+                '1',
+                self::PREFIX,
                 'SCHEMA',
-                'memory_id', 'TAG',
-                'user_id', 'TAG',
-                'project_id', 'TAG',
-                'category', 'TAG',
-                'importance', 'TAG',
-                'content', 'TEXT',
-                'created_at', 'NUMERIC', 'SORTABLE',
-                'vector', 'VECTOR', 'HNSW', '6',
-                    'TYPE', 'FLOAT32',
-                    'DIM', (string) $this->dimensions,
-                    'DISTANCE_METRIC', 'COSINE',
+                'memory_id',
+                'TAG',
+                'user_id',
+                'TAG',
+                'project_id',
+                'TAG',
+                'category',
+                'TAG',
+                'importance',
+                'TAG',
+                'content',
+                'TEXT',
+                'created_at',
+                'NUMERIC',
+                'SORTABLE',
+                'vector',
+                'VECTOR',
+                'HNSW',
+                '6',
+                'TYPE',
+                'FLOAT32',
+                'DIM',
+                (string) $this->dimensions,
+                'DISTANCE_METRIC',
+                'COSINE',
             );
             $this->logger->info('VectorStore: created RediSearch index');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Double-check it's not an "already exists" race condition
             if (str_contains($e->getMessage(), 'Index already exists')) {
                 $this->logger->debug('VectorStore: index already exists (race)');
+
                 return;
             }
             $this->logger->error("VectorStore: failed to create index: {$e->getMessage()}");
+
             throw $e;
         }
     }
@@ -117,6 +145,7 @@ class VectorStore
      * @param float[] $queryVector
      * @param int $topK Number of results to return
      * @param array{user_id?: string, project_id?: string, category?: string} $filters
+     *
      * @return array<int, array{memory_id: string, score: float, content: string, category: string, importance: string, project_id: string}>
      */
     public function search(array $queryVector, int $topK = 20, array $filters = []): array
@@ -143,16 +172,31 @@ class VectorStore
                 'FT.SEARCH',
                 self::INDEX_NAME,
                 $query,
-                'PARAMS', '2', 'query_vec', $binaryVector,
-                'SORTBY', 'score',
-                'RETURN', '6', 'memory_id', 'score', 'content', 'category', 'importance', 'project_id',
-                'LIMIT', '0', (string) $topK,
-                'DIALECT', '2',
+                'PARAMS',
+                '2',
+                'query_vec',
+                $binaryVector,
+                'SORTBY',
+                'score',
+                'RETURN',
+                '6',
+                'memory_id',
+                'score',
+                'content',
+                'category',
+                'importance',
+                'project_id',
+                'LIMIT',
+                '0',
+                (string) $topK,
+                'DIALECT',
+                '2',
             );
 
             return $this->parseSearchResults($result);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error("VectorStore: search failed: {$e->getMessage()}");
+
             return [];
         }
     }
@@ -175,15 +219,15 @@ class VectorStore
         $results = $this->search($vector, $topK + 1); // +1 because it will match itself
 
         // Filter out self
-        return array_values(array_filter($results, fn($r) => $r['memory_id'] !== $memoryId));
+        return array_values(array_filter($results, fn ($r) => $r['memory_id'] !== $memoryId));
     }
 
     /**
      * Scan all vector keys (for orphan cleanup).
      *
-     * @return \Generator<string> memory IDs
+     * @return Generator<string> memory IDs
      */
-    public function scanAllIds(): \Generator
+    public function scanAllIds(): Generator
     {
         $cursor = 0;
         do {

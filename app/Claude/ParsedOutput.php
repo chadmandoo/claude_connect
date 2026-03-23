@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Claude;
 
+/**
+ * Immutable value object representing the parsed result of a Claude CLI execution,
+ * including success/failure status, session ID, cost, token counts, and extracted images.
+ */
 class ParsedOutput
 {
     public function __construct(
@@ -16,7 +20,8 @@ class ParsedOutput
         public readonly int $outputTokens,
         public readonly array $images,
         public readonly array $raw,
-    ) {}
+    ) {
+    }
 
     public static function fromSuccess(string $result, ?string $sessionId = null, array $raw = [], array $images = []): self
     {

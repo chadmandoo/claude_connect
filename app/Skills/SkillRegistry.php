@@ -8,6 +8,12 @@ use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Registry for MCP server skills with layered resolution (builtin, global, user-specific).
+ *
+ * User-scoped skills override global skills, which override built-in skills,
+ * allowing per-user customization of available Claude CLI tool servers.
+ */
 class SkillRegistry
 {
     #[Inject]
@@ -58,6 +64,7 @@ class SkillRegistry
         if ($scope === 'builtin') {
             return $this->builtinSkills->getAll();
         }
+
         return $this->store->getAllSkills($scope);
     }
 

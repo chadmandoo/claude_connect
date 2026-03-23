@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Listener;
 
-use App\Agent\AgentSupervisor;
-use App\StateMachine\TaskManager;
-use App\Conversation\ConversationManager;
 use App\Chat\ChatConversationStore;
+use App\Conversation\ConversationManager;
+use App\StateMachine\TaskManager;
 use App\Web\TaskNotifier;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Event\Annotation\Listener;
@@ -15,6 +14,8 @@ use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Redis;
+use Throwable;
 
 /**
  * Subscribes to Redis pub/sub channel for task completions from the external worker.
@@ -54,9 +55,9 @@ class TaskCompletionListener implements ListenerInterface
 
             try {
                 // Use a dedicated Redis connection for subscribing (subscribe blocks)
-                $subRedis = new \Redis();
+                $subRedis = new Redis();
                 $subRedis->connect($redisHost, $redisPort);
-                $subRedis->setOption(\Redis::OPT_READ_TIMEOUT, -1); // Block forever
+                $subRedis->setOption(Redis::OPT_READ_TIMEOUT, -1); // Block forever
 
                 $subRedis->subscribe(['cc:task_completions'], function ($redis, $channel, $message) use ($logger) {
                     try {
@@ -71,11 +72,11 @@ class TaskCompletionListener implements ListenerInterface
                         $logger->info("TaskCompletionListener: received {$state} for task {$taskId}");
 
                         $this->handleCompletion($taskId, $state);
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         $logger->error("TaskCompletionListener: error handling message: {$e->getMessage()}");
                     }
                 });
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->error("TaskCompletionListener: Redis subscribe failed: {$e->getMessage()}");
             }
         });
@@ -92,6 +93,7 @@ class TaskCompletionListener implements ListenerInterface
         $task = $taskManager->getTask($taskId);
         if (!$task) {
             $logger->warning("TaskCompletionListener: task {$taskId} not found");
+
             return;
         }
 
@@ -116,7 +118,7 @@ class TaskCompletionListener implements ListenerInterface
                         'role' => 'assistant',
                         'content' => $result,
                     ]);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $logger->warning("TaskCompletionListener: failed to append chat history for {$taskId}: {$e->getMessage()}");
                 }
             }

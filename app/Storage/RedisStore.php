@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Storage;
 
-use Hyperf\Redis\Redis;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Redis\Redis;
+use Throwable;
 
 /**
  * Redis store — ephemeral operations only.
@@ -48,7 +49,7 @@ class RedisStore
         return (bool) $this->redis->set(
             self::PREFIX . $key,
             (string) time(),
-            ['NX', 'EX' => $ttlSeconds]
+            ['NX', 'EX' => $ttlSeconds],
         );
     }
 
@@ -70,7 +71,7 @@ class RedisStore
     {
         $this->redis->rPush(
             self::PREFIX . "chat_history:{$conversationId}",
-            json_encode($message)
+            json_encode($message),
         );
     }
 
@@ -79,9 +80,10 @@ class RedisStore
         $total = (int) $this->redis->lLen(self::PREFIX . "chat_history:{$conversationId}");
         $start = max(0, $total - $limit);
         $raw = $this->redis->lRange(self::PREFIX . "chat_history:{$conversationId}", $start, -1);
+
         return array_values(array_filter(
-            array_map(fn(string $item) => json_decode($item, true), $raw ?: []),
-            fn($entry) => is_array($entry),
+            array_map(fn (string $item) => json_decode($item, true), $raw ?: []),
+            fn ($entry) => is_array($entry),
         ));
     }
 
@@ -105,6 +107,7 @@ class RedisStore
     public function getActiveProjectId(): ?string
     {
         $id = $this->redis->get(self::PREFIX . 'project:active');
+
         return $id ?: null;
     }
 
@@ -126,8 +129,9 @@ class RedisStore
     {
         try {
             $result = $this->redis->ping();
+
             return $result === true || $result === '+PONG';
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }

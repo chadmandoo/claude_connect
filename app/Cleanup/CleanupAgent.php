@@ -4,18 +4,25 @@ declare(strict_types=1);
 
 namespace App\Cleanup;
 
+use App\Claude\ProcessManager;
+use App\Conversation\ConversationManager;
+use App\Memory\MemoryManager;
+use App\Project\ProjectManager;
+use App\Prompts\PromptLoader;
 use App\StateMachine\TaskManager;
 use App\StateMachine\TaskState;
-use App\Claude\ProcessManager;
-use App\Memory\MemoryManager;
-use App\Conversation\ConversationManager;
-use App\Project\ProjectManager;
 use App\Storage\PostgresStore;
-use App\Prompts\PromptLoader;
-use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Periodic garbage collection agent that triages, consolidates, and prunes old tasks and conversations.
+ *
+ * Runs a multi-phase cycle: reaps stale tasks, classifies items via Haiku (core/operational/ephemeral),
+ * extracts knowledge from core items into memory, and deletes expired ephemeral/operational data.
+ */
 class CleanupAgent
 {
     #[Inject]
@@ -46,6 +53,7 @@ class CleanupAgent
     private LoggerInterface $logger;
 
     private bool $running = false;
+
     private float $runBudgetSpent = 0.0;
 
     /**
@@ -57,6 +65,7 @@ class CleanupAgent
 
         if (!$cleanupConfig->enabled) {
             $this->logger->info('CleanupAgent: disabled by config');
+
             return;
         }
 
@@ -72,7 +81,7 @@ class CleanupAgent
 
             try {
                 $this->run(dryRun: false);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("CleanupAgent: tick error: {$e->getMessage()}");
             }
         }
@@ -112,30 +121,33 @@ class CleanupAgent
         $taskCandidates = $this->gatherTaskCandidates($cleanupConfig);
         $conversationCandidates = $this->gatherConversationCandidates($cleanupConfig);
 
-        $this->logger->info("CleanupAgent: found " . count($taskCandidates) . " task candidates, " . count($conversationCandidates) . " conversation candidates");
+        $this->logger->info('CleanupAgent: found ' . count($taskCandidates) . ' task candidates, ' . count($conversationCandidates) . ' conversation candidates');
 
         if (empty($taskCandidates) && empty($conversationCandidates)) {
             $this->logger->info('CleanupAgent: no task/conversation candidates to triage');
+
             return $stats;
         }
 
         // --- Phase 2: Triage (batch classify via Haiku) ---
         $allCandidates = array_merge(
-            array_map(fn(array $t) => $this->formatTaskForTriage($t), $taskCandidates),
-            array_map(fn(array $c) => $this->formatConversationForTriage($c), $conversationCandidates)
+            array_map(fn (array $t) => $this->formatTaskForTriage($t), $taskCandidates),
+            array_map(fn (array $c) => $this->formatConversationForTriage($c), $conversationCandidates),
         );
 
         $classifications = $this->triageBatched($allCandidates, $cleanupConfig);
         $stats['triaged'] = count($classifications);
 
-        $coreCounts = count(array_filter($classifications, fn($c) => $c['classification'] === 'core'));
-        $opCounts = count(array_filter($classifications, fn($c) => $c['classification'] === 'operational'));
-        $ephCounts = count(array_filter($classifications, fn($c) => $c['classification'] === 'ephemeral'));
+        $coreCounts = count(array_filter($classifications, fn ($c) => $c['classification'] === 'core'));
+        $opCounts = count(array_filter($classifications, fn ($c) => $c['classification'] === 'operational'));
+        $ephCounts = count(array_filter($classifications, fn ($c) => $c['classification'] === 'ephemeral'));
         $this->logger->info("CleanupAgent: triage results — core: {$coreCounts}, operational: {$opCounts}, ephemeral: {$ephCounts}");
 
         // --- Phase 3: Consolidation (extract knowledge from core items) ---
-        $coreItems = array_filter($classifications, fn(array $c) =>
-            $c['classification'] === 'core' && ($c['extract_memory'] ?? false)
+        $coreItems = array_filter(
+            $classifications,
+            fn (array $c) =>
+            $c['classification'] === 'core' && ($c['extract_memory'] ?? false),
         );
 
         if (!empty($coreItems)) {
@@ -144,8 +156,10 @@ class CleanupAgent
         }
 
         // Mark core/operational conversations as learned (knowledge extracted or not needed)
-        $learnableItems = array_filter($classifications, fn(array $c) =>
-            in_array($c['classification'], ['core', 'operational'], true)
+        $learnableItems = array_filter(
+            $classifications,
+            fn (array $c) =>
+            in_array($c['classification'], ['core', 'operational'], true),
         );
         foreach ($learnableItems as $c) {
             $candidate = $this->findCandidate($allCandidates, $c['id']);
@@ -160,19 +174,24 @@ class CleanupAgent
 
         // --- Phase 4: Prune ---
         // Prune ephemeral immediately
-        $ephemeralItems = array_values(array_filter($classifications, fn(array $c) =>
-            $c['classification'] === 'ephemeral'
+        $ephemeralItems = array_values(array_filter(
+            $classifications,
+            fn (array $c) =>
+            $c['classification'] === 'ephemeral',
         ));
         $stats = $this->pruneItems($ephemeralItems, $allCandidates, $dryRun, $stats);
 
         // Prune operational items only if older than 2x retention
         $doubleRetentionCutoff = time() - ($cleanupConfig->retentionDaysTasks * 86400 * 2);
-        $operationalItems = array_filter($classifications, fn(array $c) =>
-            $c['classification'] === 'operational'
+        $operationalItems = array_filter(
+            $classifications,
+            fn (array $c) =>
+            $c['classification'] === 'operational',
         );
         $oldOperational = array_values(array_filter($operationalItems, function (array $c) use ($allCandidates, $doubleRetentionCutoff) {
             $item = $this->findCandidate($allCandidates, $c['id']);
             $createdAt = (int) ($item['created_at'] ?? 0);
+
             return $createdAt > 0 && $createdAt < $doubleRetentionCutoff;
         }));
         if (!empty($oldOperational)) {
@@ -386,11 +405,12 @@ class CleanupAgent
         $template = $this->promptLoader->load('cleanup/triage');
         if ($template === '') {
             $this->logger->error('CleanupAgent: triage prompt not found');
+
             return $this->defaultClassifications($batch, 'operational');
         }
 
         $itemsJson = json_encode(
-            array_map(fn(array $item) => [
+            array_map(fn (array $item) => [
                 'id' => $item['id'],
                 'type' => $item['type'],
                 'prompt' => $item['prompt'] ?? $item['summary'] ?? '',
@@ -398,7 +418,7 @@ class CleanupAgent
                 'state' => $item['state'] ?? '',
                 'age_days' => round((time() - ($item['created_at'] ?? time())) / 86400, 1),
             ], $batch),
-            JSON_PRETTY_PRINT
+            JSON_PRETTY_PRINT,
         );
 
         $prompt = str_replace('{items}', $itemsJson, $template);
@@ -426,15 +446,18 @@ class CleanupAgent
             $state = $task['state'] ?? '';
             if ($state === 'completed') {
                 $this->runBudgetSpent += (float) ($task['cost_usd'] ?? 0);
+
                 return $this->parseTriageResult($task['result'] ?? '', $batch);
             }
             if ($state === 'failed') {
                 $this->logger->warning('CleanupAgent: triage batch failed, defaulting to operational');
+
                 return $this->defaultClassifications($batch, 'operational');
             }
         }
 
         $this->logger->warning('CleanupAgent: triage batch timed out');
+
         return $this->defaultClassifications($batch, 'operational');
     }
 
@@ -484,7 +507,7 @@ class CleanupAgent
 
     private function defaultClassifications(array $batch, string $default): array
     {
-        return array_map(fn(array $item) => [
+        return array_map(fn (array $item) => [
             'id' => $item['id'],
             'classification' => $default,
             'reason' => 'default (triage unavailable)',
@@ -498,12 +521,14 @@ class CleanupAgent
     {
         if ($this->runBudgetSpent >= $config->maxBudgetUsd) {
             $this->logger->info('CleanupAgent: budget cap reached, skipping consolidation');
+
             return 0;
         }
 
         $template = $this->promptLoader->load('cleanup/consolidate');
         if ($template === '') {
             $this->logger->error('CleanupAgent: consolidate prompt not found');
+
             return 0;
         }
 
@@ -522,7 +547,7 @@ class CleanupAgent
 
         $userId = $this->config->get('mcp.web.user_id', 'web_user');
         $existingMemories = $this->memoryManager->getStructuredMemories($userId, 100);
-        $existingMemoriesJson = json_encode(array_map(fn($m) => [
+        $existingMemoriesJson = json_encode(array_map(fn ($m) => [
             'id' => $m['id'] ?? '',
             'category' => $m['category'] ?? '',
             'content' => $m['content'] ?? '',
@@ -530,7 +555,7 @@ class CleanupAgent
 
         // Build available projects list for the prompt
         $workspaces = $this->projectManager->listWorkspaces();
-        $availableProjectsJson = json_encode(array_map(fn($p) => [
+        $availableProjectsJson = json_encode(array_map(fn ($p) => [
             'id' => $p['id'] ?? '',
             'name' => $p['name'] ?? '',
             'description' => $p['description'] ?? '',
@@ -544,7 +569,7 @@ class CleanupAgent
                 break;
             }
 
-            $itemsJson = json_encode(array_map(fn(array $item) => [
+            $itemsJson = json_encode(array_map(fn (array $item) => [
                 'id' => $item['id'],
                 'type' => $item['type'],
                 'prompt' => $item['prompt'] ?? $item['summary'] ?? '',
@@ -555,7 +580,7 @@ class CleanupAgent
             $prompt = str_replace(
                 ['{items}', '{available_projects}', '{existing_memories}'],
                 [$itemsJson, $availableProjectsJson, $existingMemoriesJson],
-                $template
+                $template,
             );
 
             $taskId = $this->taskManager->createTask($prompt, null, [
@@ -717,6 +742,7 @@ class CleanupAgent
                 return $c;
             }
         }
+
         return null;
     }
 }

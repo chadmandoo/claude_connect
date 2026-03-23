@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Web\WebSocketHandler;
 use Hyperf\Server\Event;
 use Hyperf\Server\Server;
 use Swoole\Constant;
-use App\Web\WebSocketHandler;
+
 use function Hyperf\Support\env;
 
 return [

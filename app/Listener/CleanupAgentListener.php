@@ -10,7 +10,14 @@ use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to launch the CleanupAgent on worker 0.
+ *
+ * Starts the periodic cleanup loop that removes stale tasks, orphaned data,
+ * and other housekeeping operations in a background coroutine.
+ */
 #[Listener]
 class CleanupAgentListener implements ListenerInterface
 {
@@ -39,11 +46,12 @@ class CleanupAgentListener implements ListenerInterface
 
         \Swoole\Coroutine::create(function () {
             $logger = $this->container->get(LoggerInterface::class);
+
             try {
                 $logger->info('CleanupAgent: starting on worker 0');
                 $agent = $this->container->get(CleanupAgent::class);
                 $agent->start();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->error("CleanupAgent fatal: {$e->getMessage()}");
             }
         });

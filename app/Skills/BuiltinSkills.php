@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Skills;
 
+/**
+ * Provides default MCP server configurations that are always available unless overridden.
+ */
 class BuiltinSkills
 {
     /**

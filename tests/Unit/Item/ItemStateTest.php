@@ -6,7 +6,14 @@ namespace Tests\Unit\Item;
 
 use App\Item\ItemState;
 use PHPUnit\Framework\TestCase;
+use ValueError;
 
+/**
+ * Tests for ItemState enum.
+ *
+ * Covers: string values for all states, from() construction, exhaustive state transition
+ * validation (canTransitionTo) for every state pair, and terminal state detection.
+ */
 class ItemStateTest extends TestCase
 {
     public function testEnumValues(): void
@@ -36,7 +43,7 @@ class ItemStateTest extends TestCase
 
     public function testFromInvalidStringThrows(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         ItemState::from('invalid');
     }
 

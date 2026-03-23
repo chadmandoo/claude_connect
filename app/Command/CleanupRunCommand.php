@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Cleanup\CleanupAgent;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * CLI command `cleanup:run` to manually trigger the cleanup agent cycle
+ * with optional dry-run mode and retention period override.
+ */
 #[Command]
 class CleanupRunCommand extends HyperfCommand
 {
@@ -21,13 +25,6 @@ class CleanupRunCommand extends HyperfCommand
         private ContainerInterface $container,
     ) {
         parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addOption('dry-run', null, InputOption::VALUE_NONE, 'Preview what would be cleaned up without deleting anything');
-        $this->addOption('days', 'd', InputOption::VALUE_REQUIRED, 'Override retention days for both tasks and conversations');
     }
 
     public function handle(): void
@@ -61,7 +58,14 @@ class CleanupRunCommand extends HyperfCommand
         $this->line("  Pruned conversations: {$stats['pruned_conversations']}");
         $this->line("  Pruned threads:       {$stats['pruned_threads']}");
         $this->line("  Pruned memories:      {$stats['pruned_memories']}");
-        $this->line("  Budget spent:         $" . number_format($stats['budget_spent'], 4));
+        $this->line('  Budget spent:         $' . number_format($stats['budget_spent'], 4));
         $this->info('======================');
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addOption('dry-run', null, InputOption::VALUE_NONE, 'Preview what would be cleaned up without deleting anything');
+        $this->addOption('days', 'd', InputOption::VALUE_REQUIRED, 'Override retention days for both tasks and conversations');
     }
 }

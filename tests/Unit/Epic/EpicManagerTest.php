@@ -12,12 +12,19 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for EpicManager.
+ *
+ * Covers: epic creation with UUID and project association, retrieval (found and not found),
+ * listing epics by project, and deleting non-backlog epics with item migration.
+ */
 class EpicManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private EpicManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
 
     protected function setUp(): void
@@ -47,7 +54,7 @@ class EpicManagerTest extends TestCase
         $this->assertIsString($result);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $result
+            $result,
         );
     }
 

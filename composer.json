@@ -22,7 +22,10 @@
         "ramsey/uuid": "^4.7"
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.94",
         "mockery/mockery": "^1.6",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-mockery": "^2.0",
         "phpunit/phpunit": "^10.5"
     },
     "autoload": {
@@ -42,6 +45,14 @@
     "scripts": {
         "start": "php bin/hyperf.php start",
         "test": "vendor/bin/phpunit",
-        "test:coverage": "vendor/bin/phpunit --coverage-text --coverage-html runtime/coverage"
+        "test:coverage": "vendor/bin/phpunit --coverage-text --coverage-html runtime/coverage",
+        "lint": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "lint:fix": "vendor/bin/php-cs-fixer fix",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=512M",
+        "ci": [
+            "@lint",
+            "@analyse",
+            "@test"
+        ]
     }
 }

@@ -6,7 +6,14 @@ namespace Tests\Unit\Item;
 
 use App\Item\ItemPriority;
 use PHPUnit\Framework\TestCase;
+use ValueError;
 
+/**
+ * Tests for ItemPriority enum.
+ *
+ * Covers: string values for all priority levels (low, normal, high, urgent),
+ * total case count, from() construction, and invalid value rejection.
+ */
 class ItemPriorityTest extends TestCase
 {
     public function testLowValue(): void
@@ -44,7 +51,7 @@ class ItemPriorityTest extends TestCase
 
     public function testFromInvalidStringThrows(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         ItemPriority::from('invalid');
     }
 }

@@ -130,6 +130,11 @@ Web-first project-based agent system built with PHP 8.3 + Swoole 6.0 + Hyperf 3.
 ## Commands
 - `php bin/hyperf.php start` - Start the server
 - `composer install` - Install dependencies
+- `composer lint` - Check code formatting (dry-run)
+- `composer lint:fix` - Auto-fix code formatting
+- `composer analyse` - Run PHPStan static analysis (level 6)
+- `composer test` - Run PHPUnit test suite
+- `composer ci` - Run all quality checks (lint + analyse + test)
 
 ## Endpoints
 - GET `http://localhost:9501/health` - Health check

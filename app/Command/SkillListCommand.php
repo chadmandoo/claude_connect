@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Skills\SkillRegistry;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * CLI command `skill:list` to display registered MCP server skills for a given scope.
+ */
 #[Command]
 class SkillListCommand extends HyperfCommand
 {
@@ -23,12 +26,6 @@ class SkillListCommand extends HyperfCommand
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addOption('scope', null, InputOption::VALUE_OPTIONAL, 'Scope: "builtin", "global", or a user ID', 'global');
-    }
-
     public function handle(): void
     {
         $scope = $this->input->getOption('scope');
@@ -38,6 +35,7 @@ class SkillListCommand extends HyperfCommand
 
         if (empty($skills)) {
             $this->info("No skills registered in scope '{$scope}'.");
+
             return;
         }
 
@@ -47,5 +45,11 @@ class SkillListCommand extends HyperfCommand
             $args = implode(' ', $config['args'] ?? []);
             $this->line("  {$name}: {$cmd} {$args}");
         }
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addOption('scope', null, InputOption::VALUE_OPTIONAL, 'Scope: "builtin", "global", or a user ID', 'global');
     }
 }

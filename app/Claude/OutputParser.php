@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Claude;
 
+/**
+ * Parses JSON output from the Claude CLI into structured ParsedOutput results.
+ *
+ * Also provides static helpers to extract inline <memory> and <work_item> tags from response text.
+ */
 class OutputParser
 {
     /**
@@ -22,6 +27,7 @@ class OutputParser
             if ($exitCode === 0) {
                 return ParsedOutput::fromSuccess($output);
             }
+
             return ParsedOutput::fromFailure($output);
         }
 
@@ -31,7 +37,7 @@ class OutputParser
             return ParsedOutput::fromFailure(
                 is_string($decoded['error']) ? $decoded['error'] : json_encode($decoded['error']),
                 $decoded,
-                $sessionId
+                $sessionId,
             );
         }
 
@@ -62,40 +68,11 @@ class OutputParser
             return ParsedOutput::fromFailure(
                 $decoded['message'] ?? 'Claude CLI exited with code ' . $exitCode,
                 $decoded,
-                $sessionId
+                $sessionId,
             );
         }
 
         return ParsedOutput::fromSuccess($result, $sessionId, $decoded, $images);
-    }
-
-    private function extractResult(array $data): string
-    {
-        if (isset($data['result']) && is_string($data['result'])) {
-            return $data['result'];
-        }
-
-        if (isset($data['content']) && is_string($data['content'])) {
-            return $data['content'];
-        }
-
-        if (isset($data['message']) && is_string($data['message'])) {
-            return $data['message'];
-        }
-
-        if (isset($data['content']) && is_array($data['content'])) {
-            $texts = [];
-            foreach ($data['content'] as $block) {
-                if (isset($block['text'])) {
-                    $texts[] = $block['text'];
-                }
-            }
-            if (!empty($texts)) {
-                return implode("\n", $texts);
-            }
-        }
-
-        return json_encode($data, JSON_PRETTY_PRINT);
     }
 
     /**
@@ -179,6 +156,35 @@ class OutputParser
         $cleaned = trim($cleaned);
 
         return ['items' => $items, 'cleaned' => $cleaned];
+    }
+
+    private function extractResult(array $data): string
+    {
+        if (isset($data['result']) && is_string($data['result'])) {
+            return $data['result'];
+        }
+
+        if (isset($data['content']) && is_string($data['content'])) {
+            return $data['content'];
+        }
+
+        if (isset($data['message']) && is_string($data['message'])) {
+            return $data['message'];
+        }
+
+        if (isset($data['content']) && is_array($data['content'])) {
+            $texts = [];
+            foreach ($data['content'] as $block) {
+                if (isset($block['text'])) {
+                    $texts[] = $block['text'];
+                }
+            }
+            if (!empty($texts)) {
+                return implode("\n", $texts);
+            }
+        }
+
+        return json_encode($data, JSON_PRETTY_PRINT);
     }
 
     /**

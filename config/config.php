@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Hyperf\Contract\StdoutLoggerInterface;
+
 use function Hyperf\Support\env;
 
 return [

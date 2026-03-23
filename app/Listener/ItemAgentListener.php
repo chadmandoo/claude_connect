@@ -10,7 +10,14 @@ use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to launch the ItemAgent on worker 0.
+ *
+ * Starts the autonomous work item processing agent in a background coroutine
+ * that polls for assigned items and executes them via Claude CLI.
+ */
 #[Listener]
 class ItemAgentListener implements ListenerInterface
 {
@@ -39,11 +46,12 @@ class ItemAgentListener implements ListenerInterface
 
         \Swoole\Coroutine::create(function () {
             $logger = $this->container->get(LoggerInterface::class);
+
             try {
                 $logger->info('ItemAgent: starting on worker 0');
                 $agent = $this->container->get(ItemAgent::class);
                 $agent->start();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->error("ItemAgent fatal: {$e->getMessage()}");
             }
         });

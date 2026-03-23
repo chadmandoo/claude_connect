@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace App\Pipeline\Stages;
 
+use App\Claude\ProcessManager;
+use App\Memory\MemoryManager;
 use App\Pipeline\PipelineContext;
 use App\Pipeline\PipelineStage;
 use App\StateMachine\TaskManager;
-use App\Claude\ProcessManager;
-use App\Memory\MemoryManager;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Pipeline stage that uses Claude Haiku to extract structured memories from task results.
+ *
+ * Analyzes prompt/result exchanges to identify user preferences, project facts,
+ * and contextual information worth persisting, then stores them via MemoryManager.
+ */
 class ExtractMemoryStage implements PipelineStage
 {
     public function __construct(
@@ -18,7 +24,8 @@ class ExtractMemoryStage implements PipelineStage
         private readonly ProcessManager $processManager,
         private readonly MemoryManager $memoryManager,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {
@@ -46,28 +53,28 @@ class ExtractMemoryStage implements PipelineStage
         $result = mb_substr($result, 0, 2000);
 
         $extractionPrompt = <<<PROMPT
-Analyze this conversation exchange and extract structured memory.
+            Analyze this conversation exchange and extract structured memory.
 
-User asked: {$prompt}
-Assistant replied: {$result}
+            User asked: {$prompt}
+            Assistant replied: {$result}
 
-Respond ONLY with valid JSON:
-{
-  "summary": "2-3 sentence summary of what was discussed and accomplished",
-  "topics": ["topic1", "topic2"],
-  "memories": [
-    {"category": "preference|project|fact|context", "content": "specific thing to remember", "importance": "high|normal|low"}
-  ]
-}
+            Respond ONLY with valid JSON:
+            {
+              "summary": "2-3 sentence summary of what was discussed and accomplished",
+              "topics": ["topic1", "topic2"],
+              "memories": [
+                {"category": "preference|project|fact|context", "content": "specific thing to remember", "importance": "high|normal|low"}
+              ]
+            }
 
-Categories:
-- preference: personal preferences, habits, communication style
-- project: project details, codebases, tech stacks, architecture decisions
-- fact: personal facts, names, locations, schedules
-- context: situational context, ongoing work, recurring topics
+            Categories:
+            - preference: personal preferences, habits, communication style
+            - project: project details, codebases, tech stacks, architecture decisions
+            - fact: personal facts, names, locations, schedules
+            - context: situational context, ongoing work, recurring topics
 
-Only include memories worth remembering long-term. If nothing notable, use empty array for memories.
-PROMPT;
+            Only include memories worth remembering long-term. If nothing notable, use empty array for memories.
+            PROMPT;
 
         $extractionTaskId = $this->taskManager->createTask($extractionPrompt, null, [
             'source' => 'extraction',
@@ -94,6 +101,7 @@ PROMPT;
             if ($state === 'completed') {
                 $extractResult = $extractionTask['result'] ?? '';
                 $this->parseAndStoreMemory($userId, $extractResult);
+
                 return ['success' => true];
             }
 

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Memory\MemoryManager;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputArgument;
 
+/**
+ * CLI command `memory:set` to store a key-value memory fact for a specific user.
+ */
 #[Command]
 class MemorySetCommand extends HyperfCommand
 {
@@ -23,14 +26,6 @@ class MemorySetCommand extends HyperfCommand
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addArgument('user_id', InputArgument::REQUIRED, 'The user ID');
-        $this->addArgument('key', InputArgument::REQUIRED, 'The fact key');
-        $this->addArgument('value', InputArgument::REQUIRED, 'The fact value');
-    }
-
     public function handle(): void
     {
         $userId = $this->input->getArgument('user_id');
@@ -41,5 +36,13 @@ class MemorySetCommand extends HyperfCommand
         $memoryManager->remember($userId, $key, $value);
 
         $this->info("Set memory fact for {$userId}: {$key} = {$value}");
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addArgument('user_id', InputArgument::REQUIRED, 'The user ID');
+        $this->addArgument('key', InputArgument::REQUIRED, 'The fact key');
+        $this->addArgument('value', InputArgument::REQUIRED, 'The fact value');
     }
 }

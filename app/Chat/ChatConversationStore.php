@@ -8,6 +8,12 @@ use App\Storage\RedisStore;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Redis-backed ephemeral chat history store for Anthropic API message context.
+ *
+ * Handles message append, retrieval, trimming, compaction with summaries,
+ * and sanitization of tool_use/tool_result message pairs.
+ */
 class ChatConversationStore
 {
     #[Inject]
@@ -16,12 +22,7 @@ class ChatConversationStore
     #[Inject]
     private LoggerInterface $logger;
 
-    private int $compactionThreshold;
-
-    public function __construct(int $compactionThreshold = 30)
-    {
-        $this->compactionThreshold = $compactionThreshold;
-    }
+    private int $compactionThreshold = 30;
 
     public function setCompactionThreshold(int $threshold): void
     {
@@ -31,7 +32,6 @@ class ChatConversationStore
     /**
      * Append a message to the chat history.
      *
-     * @param string $conversationId
      * @param array $message Anthropic-format message {role, content}
      */
     public function appendMessage(string $conversationId, array $message): void
@@ -71,6 +71,7 @@ class ChatConversationStore
     public function needsCompaction(string $conversationId): bool
     {
         $history = $this->getHistory($conversationId, $this->compactionThreshold + 1);
+
         return count($history) > $this->compactionThreshold;
     }
 
@@ -118,6 +119,7 @@ class ChatConversationStore
      * Removes orphaned tool_result blocks and ensures valid message alternation.
      *
      * @param array $messages Anthropic-format messages
+     *
      * @return array Sanitized messages
      */
     public function sanitizeHistory(array $messages): array

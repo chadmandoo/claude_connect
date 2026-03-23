@@ -10,7 +10,14 @@ use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to launch the NightlyConsolidationAgent on worker 0.
+ *
+ * Starts the nightly memory consolidation agent that runs scheduled deduplication,
+ * summarization, staleness checks, and embedding backfill operations.
+ */
 #[Listener]
 class NightlyConsolidationListener implements ListenerInterface
 {
@@ -39,11 +46,12 @@ class NightlyConsolidationListener implements ListenerInterface
 
         \Swoole\Coroutine::create(function () {
             $logger = $this->container->get(LoggerInterface::class);
+
             try {
                 $logger->info('NightlyAgent: starting on worker 0');
                 $agent = $this->container->get(NightlyConsolidationAgent::class);
                 $agent->start();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->error("NightlyAgent fatal: {$e->getMessage()}");
             }
         });

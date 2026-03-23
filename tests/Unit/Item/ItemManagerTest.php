@@ -13,13 +13,21 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for ItemManager.
+ *
+ * Covers: item creation with backlog epic assignment, retrieval (found and not found),
+ * listing items by project, assigning items to agents, and project item count aggregation.
+ */
 class ItemManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private ItemManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private EpicManager|Mockery\MockInterface $epicManager;
 
     protected function setUp(): void
@@ -60,7 +68,7 @@ class ItemManagerTest extends TestCase
         $this->assertIsString($result);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $result
+            $result,
         );
     }
 

@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Chat;
 
-use App\StateMachine\TaskManager;
-use App\Claude\ProcessManager;
-use App\Memory\MemoryManager;
-use App\Embedding\EmbeddingService;
-use App\Project\ProjectManager;
-use App\Item\ItemManager;
 use App\Agent\AgentManager;
-use Hyperf\Di\Annotation\Inject;
+use App\Claude\ProcessManager;
+use App\Embedding\EmbeddingService;
+use App\Item\ItemManager;
+use App\Memory\MemoryManager;
+use App\Project\ProjectManager;
+use App\StateMachine\TaskManager;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Executes tool calls from the Anthropic chat API, dispatching to internal services
+ * for task management, memory operations, project/item CRUD, and agent handoff.
+ */
 class ChatToolHandler
 {
     #[Inject]
@@ -45,7 +49,9 @@ class ChatToolHandler
     private LoggerInterface $logger;
 
     private string $userId = '';
+
     private string $conversationId = '';
+
     private string $agentId = '';
 
     public function setUserId(string $userId): void
@@ -119,7 +125,7 @@ class ChatToolHandler
         return [
             'task_id' => $taskId,
             'status' => 'pending',
-            'message' => "Task created and queued for background execution.",
+            'message' => 'Task created and queued for background execution.',
         ];
     }
 
@@ -198,6 +204,7 @@ class ChatToolHandler
         if (in_array($state, ['pending', 'running'], true)) {
             $this->taskManager->setTaskError($taskId, 'Cancelled by user');
             $this->taskManager->transition($taskId, \App\StateMachine\TaskState::FAILED);
+
             return ['task_id' => $taskId, 'status' => 'cancelled'];
         }
 
@@ -325,11 +332,20 @@ class ChatToolHandler
 
         if ($projectId !== null && $projectId !== '' && $projectId !== 'general') {
             $memId = $this->memoryManager->storeProjectMemory(
-                $this->userId, $projectId, $category, $content, $importance, 'chat_api'
+                $this->userId,
+                $projectId,
+                $category,
+                $content,
+                $importance,
+                'chat_api',
             );
         } else {
             $memId = $this->memoryManager->storeMemory(
-                $this->userId, $category, $content, $importance, 'chat_api'
+                $this->userId,
+                $category,
+                $content,
+                $importance,
+                'chat_api',
             );
         }
 
@@ -372,7 +388,11 @@ class ChatToolHandler
         $epicId = $input['epic_id'] ?? null;
 
         $itemId = $this->itemManager->createItem(
-            $projectId, $title, $epicId, $description, $priority
+            $projectId,
+            $title,
+            $epicId,
+            $description,
+            $priority,
         );
 
         return ['item_id' => $itemId, 'message' => "Work item '{$title}' created."];

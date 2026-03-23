@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace App\Pipeline\Stages;
 
+use App\Embedding\EmbeddingService;
 use App\Pipeline\PipelineContext;
 use App\Pipeline\PipelineStage;
 use App\StateMachine\TaskManager;
-use App\Embedding\EmbeddingService;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Pipeline stage that generates a vector embedding of the task result.
+ *
+ * Embeds a truncated version of substantive task results into the vector store,
+ * making completed task outcomes searchable via semantic similarity.
+ */
 class EmbedTaskResultStage implements PipelineStage
 {
     public function __construct(
         private readonly TaskManager $taskManager,
         private readonly EmbeddingService $embeddingService,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {

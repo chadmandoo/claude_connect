@@ -7,7 +7,14 @@ namespace App\Note;
 use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
+/**
+ * Manages notebooks and pages for the notes system.
+ *
+ * Provides CRUD, reordering, and cross-notebook page movement for the
+ * user-facing note-taking feature backed by PostgreSQL.
+ */
 class NoteManager
 {
     #[Inject]
@@ -42,6 +49,7 @@ class NoteManager
         ];
 
         $this->store->createNotebook($id, $notebook);
+
         return $id;
     }
 
@@ -54,7 +62,7 @@ class NoteManager
     {
         $notebook = $this->store->getNotebook($id);
         if (!$notebook) {
-            throw new \RuntimeException("Notebook {$id} not found");
+            throw new RuntimeException("Notebook {$id} not found");
         }
 
         $allowed = ['title', 'description', 'color', 'icon'];
@@ -92,7 +100,7 @@ class NoteManager
     {
         $notebook = $this->store->getNotebook($notebookId);
         if (!$notebook) {
-            throw new \RuntimeException("Notebook {$notebookId} not found");
+            throw new RuntimeException("Notebook {$notebookId} not found");
         }
 
         $id = Uuid::uuid4()->toString();
@@ -118,6 +126,7 @@ class NoteManager
         ];
 
         $this->store->createPage($id, $page);
+
         return $id;
     }
 
@@ -130,7 +139,7 @@ class NoteManager
     {
         $page = $this->store->getPage($id);
         if (!$page) {
-            throw new \RuntimeException("Page {$id} not found");
+            throw new RuntimeException("Page {$id} not found");
         }
 
         $allowed = ['title', 'content', 'pinned'];
@@ -157,12 +166,12 @@ class NoteManager
     {
         $page = $this->store->getPage($pageId);
         if (!$page) {
-            throw new \RuntimeException("Page {$pageId} not found");
+            throw new RuntimeException("Page {$pageId} not found");
         }
 
         $targetNotebook = $this->store->getNotebook($targetNotebookId);
         if (!$targetNotebook) {
-            throw new \RuntimeException("Notebook {$targetNotebookId} not found");
+            throw new RuntimeException("Notebook {$targetNotebookId} not found");
         }
 
         $existingPages = $this->store->listNotebookPages($targetNotebookId);

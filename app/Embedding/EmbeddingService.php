@@ -6,6 +6,12 @@ namespace App\Embedding;
 
 use Psr\Log\LoggerInterface;
 
+/**
+ * Orchestrates memory embedding and semantic search via the Voyage AI client and Redis vector store.
+ *
+ * Supports single and batch embedding of memories, as well as semantic similarity search
+ * with optional user, project, and category filters.
+ */
 class EmbeddingService
 {
     public function __construct(
@@ -36,6 +42,7 @@ class EmbeddingService
 
         if ($vector === null) {
             $this->logger->warning("EmbeddingService: failed to embed memory {$memoryId}");
+
             return false;
         }
 
@@ -57,6 +64,7 @@ class EmbeddingService
      * Embed a batch of memories.
      *
      * @param array<int, array{id: string, user_id: string, project_id: string, category: string, importance: string, content: string, created_at: int}> $memories
+     *
      * @return int Number successfully embedded
      */
     public function embedBatch(array $memories): int
@@ -65,7 +73,7 @@ class EmbeddingService
             return 0;
         }
 
-        $texts = array_map(fn($m) => $m['content'], $memories);
+        $texts = array_map(fn ($m) => $m['content'], $memories);
         $vectors = $this->voyageClient->embedBatch($texts);
 
         $expectedDims = count($vectors[0] ?? []);
@@ -89,7 +97,8 @@ class EmbeddingService
             $success++;
         }
 
-        $this->logger->info("EmbeddingService: batch embedded {$success}/" . count($memories) . " memories");
+        $this->logger->info("EmbeddingService: batch embedded {$success}/" . count($memories) . ' memories');
+
         return $success;
     }
 
@@ -97,6 +106,7 @@ class EmbeddingService
      * Semantic search for relevant memories.
      *
      * @param string $type Filter by type: 'memory' (default), 'conversation', 'task', 'all'
+     *
      * @return array<int, array{memory_id: string, score: float, content: string, category: string, importance: string, project_id: string}>
      */
     public function semanticSearch(
@@ -110,6 +120,7 @@ class EmbeddingService
 
         if ($queryVector === null) {
             $this->logger->warning('EmbeddingService: failed to embed query for search');
+
             return [];
         }
 

@@ -6,7 +6,14 @@ namespace Tests\Unit\Epic;
 
 use App\Epic\EpicState;
 use PHPUnit\Framework\TestCase;
+use ValueError;
 
+/**
+ * Tests for EpicState enum.
+ *
+ * Covers: string values for all cases, from() construction, valid and invalid state
+ * transitions (canTransitionTo), and terminal state detection (completed, cancelled).
+ */
 class EpicStateTest extends TestCase
 {
     public function testEnumValues(): void
@@ -32,7 +39,7 @@ class EpicStateTest extends TestCase
 
     public function testFromInvalidStringThrows(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         EpicState::from('invalid');
     }
 

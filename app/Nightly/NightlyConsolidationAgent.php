@@ -19,7 +19,15 @@ use App\Storage\RedisStore;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Scheduled agent that runs nightly memory maintenance operations.
+ *
+ * Performs embedding backfill, vector-based deduplication, staleness detection,
+ * memory summarization, orphan cleanup, and project workspace health checks
+ * within a configurable budget ceiling.
+ */
 class NightlyConsolidationAgent
 {
     #[Inject]
@@ -65,7 +73,9 @@ class NightlyConsolidationAgent
     private LoggerInterface $logger;
 
     private bool $running = false;
+
     private float $haikuBudgetSpent = 0.0;
+
     private float $voyageBudgetSpent = 0.0;
 
     /**
@@ -77,6 +87,7 @@ class NightlyConsolidationAgent
 
         if (!$nightlyConfig->enabled) {
             $this->logger->info('NightlyAgent: disabled by config');
+
             return;
         }
 
@@ -108,7 +119,7 @@ class NightlyConsolidationAgent
                 $stats['duration'] = time() - ($stats['_start'] ?? time());
                 unset($stats['_start']);
                 $this->store->addNightlyRunResult($stats);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("NightlyAgent: run error: {$e->getMessage()}");
             }
         }
@@ -137,6 +148,7 @@ class NightlyConsolidationAgent
         // Acquire distributed lock (2 hour TTL)
         if (!$dryRun && !$this->redis->acquireLock('nightly:lock', 7200)) {
             $this->logger->info('NightlyAgent: skipping — lock held by another run');
+
             return [
                 'backfilled' => 0, 'validated' => 0, 'removed_stale' => 0,
                 'merged' => 0, 'summarized' => 0, 'orphans_cleaned' => 0,
@@ -238,7 +250,9 @@ class NightlyConsolidationAgent
         $workspaces = $this->projectManager->listWorkspaces();
         foreach ($workspaces as $project) {
             $pid = $project['id'] ?? '';
-            if ($pid === '') continue;
+            if ($pid === '') {
+                continue;
+            }
 
             $projectMemories = $this->memoryManager->getProjectMemories($userId, $pid, 10000);
             foreach ($projectMemories as $entry) {
@@ -259,16 +273,18 @@ class NightlyConsolidationAgent
 
         if (empty($needsEmbedding)) {
             $this->logger->info('NightlyAgent: no memories need backfill');
+
             return 0;
         }
 
         if ($dryRun) {
-            $this->logger->info("NightlyAgent [DRY RUN]: would backfill " . count($needsEmbedding) . " memories");
+            $this->logger->info('NightlyAgent [DRY RUN]: would backfill ' . count($needsEmbedding) . ' memories');
+
             return count($needsEmbedding);
         }
 
         $embedded = $this->embeddingService->embedBatch($needsEmbedding);
-        $this->logger->info("NightlyAgent: backfilled {$embedded}/" . count($needsEmbedding) . " memories");
+        $this->logger->info("NightlyAgent: backfilled {$embedded}/" . count($needsEmbedding) . ' memories');
 
         return $embedded;
     }
@@ -283,6 +299,7 @@ class NightlyConsolidationAgent
         $template = $this->promptLoader->load('nightly/validate');
         if ($template === '') {
             $this->logger->warning('NightlyAgent: validate prompt not found, skipping');
+
             return $stats;
         }
 
@@ -296,12 +313,16 @@ class NightlyConsolidationAgent
             }
 
             $pid = $project['id'] ?? '';
-            if ($pid === '') continue;
+            if ($pid === '') {
+                continue;
+            }
 
             $projectMemories = $this->memoryManager->getProjectMemories($userId, $pid, 500);
             // Skip core memories — they are never auto-validated/pruned
-            $projectMemories = array_values(array_filter($projectMemories, fn($m) => ($m['type'] ?? 'project') !== 'core'));
-            if (empty($projectMemories)) continue;
+            $projectMemories = array_values(array_filter($projectMemories, fn ($m) => ($m['type'] ?? 'project') !== 'core'));
+            if (empty($projectMemories)) {
+                continue;
+            }
 
             $projectName = $project['name'] ?? $pid;
             $cwd = $project['cwd'] ?? '';
@@ -313,18 +334,20 @@ class NightlyConsolidationAgent
             $epics = $this->epicManager->listEpics($pid);
             $items = $this->itemManager->listItemsByProject($pid);
             $projectContext = "Project: {$projectName}\nDescription: " . ($project['description'] ?? '') . "\n";
-            $projectContext .= "Epics: " . count($epics) . ", Items: " . count($items) . "\n";
+            $projectContext .= 'Epics: ' . count($epics) . ', Items: ' . count($items) . "\n";
             if (!empty($epics)) {
-                $epicNames = array_map(fn($e) => $e['title'] ?? '', $epics);
-                $projectContext .= "Epic titles: " . implode(', ', array_filter($epicNames)) . "\n";
+                $epicNames = array_map(fn ($e) => $e['title'] ?? '', $epics);
+                $projectContext .= 'Epic titles: ' . implode(', ', array_filter($epicNames)) . "\n";
             }
 
             // Batch validate memories
             $batches = array_chunk($projectMemories, $config->batchSize);
             foreach ($batches as $batch) {
-                if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) break;
+                if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) {
+                    break;
+                }
 
-                $memoriesJson = json_encode(array_map(fn($m) => [
+                $memoriesJson = json_encode(array_map(fn ($m) => [
                     'id' => $m['id'] ?? '',
                     'category' => $m['category'] ?? 'fact',
                     'importance' => $m['importance'] ?? 'normal',
@@ -339,7 +362,9 @@ class NightlyConsolidationAgent
                 );
 
                 $verdicts = $this->callHaiku($prompt, $config);
-                if ($verdicts === null) continue;
+                if ($verdicts === null) {
+                    continue;
+                }
 
                 $parsed = $this->parseValidationResult($verdicts);
                 $stats['validated'] += count($parsed);
@@ -364,13 +389,15 @@ class NightlyConsolidationAgent
 
         // Also validate general memories (excluding core)
         $generalMemories = $this->memoryManager->getStructuredMemories($userId, 500);
-        $generalMemories = array_values(array_filter($generalMemories, fn($m) => ($m['type'] ?? 'project') !== 'core'));
+        $generalMemories = array_values(array_filter($generalMemories, fn ($m) => ($m['type'] ?? 'project') !== 'core'));
         if (!empty($generalMemories) && $this->haikuBudgetSpent < $config->maxBudgetUsd) {
             $batches = array_chunk($generalMemories, $config->batchSize);
             foreach ($batches as $batch) {
-                if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) break;
+                if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) {
+                    break;
+                }
 
-                $memoriesJson = json_encode(array_map(fn($m) => [
+                $memoriesJson = json_encode(array_map(fn ($m) => [
                     'id' => $m['id'] ?? '',
                     'category' => $m['category'] ?? 'fact',
                     'importance' => $m['importance'] ?? 'normal',
@@ -385,7 +412,9 @@ class NightlyConsolidationAgent
                 );
 
                 $verdicts = $this->callHaiku($prompt, $config);
-                if ($verdicts === null) continue;
+                if ($verdicts === null) {
+                    continue;
+                }
 
                 $parsed = $this->parseValidationResult($verdicts);
                 $stats['validated'] += count($parsed);
@@ -409,6 +438,7 @@ class NightlyConsolidationAgent
         }
 
         $this->logger->info("NightlyAgent: validated {$stats['validated']} memories, removed {$stats['removed']}");
+
         return $stats;
     }
 
@@ -421,6 +451,7 @@ class NightlyConsolidationAgent
         $mergeTemplate = $this->promptLoader->load('nightly/merge');
         if ($mergeTemplate === '') {
             $this->logger->warning('NightlyAgent: merge prompt not found, skipping');
+
             return 0;
         }
 
@@ -429,29 +460,48 @@ class NightlyConsolidationAgent
 
         // Check general memories for duplicates (excluding core)
         $generalMemories = $this->memoryManager->getStructuredMemories($userId, 500);
-        $generalMemories = array_values(array_filter($generalMemories, fn($m) => ($m['type'] ?? 'project') !== 'core'));
+        $generalMemories = array_values(array_filter($generalMemories, fn ($m) => ($m['type'] ?? 'project') !== 'core'));
         $merged += $this->deduplicateMemories(
-            $generalMemories, $userId, null, $config, $mergeTemplate, $processedIds, $dryRun,
+            $generalMemories,
+            $userId,
+            null,
+            $config,
+            $mergeTemplate,
+            $processedIds,
+            $dryRun,
         );
 
         // Check project memories
         $workspaces = $this->projectManager->listWorkspaces();
         foreach ($workspaces as $project) {
-            if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) break;
+            if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) {
+                break;
+            }
 
             $pid = $project['id'] ?? '';
-            if ($pid === '') continue;
+            if ($pid === '') {
+                continue;
+            }
 
             $projectMemories = $this->memoryManager->getProjectMemories($userId, $pid, 500);
-            $projectMemories = array_values(array_filter($projectMemories, fn($m) => ($m['type'] ?? 'project') !== 'core'));
-            if (count($projectMemories) < 2) continue;
+            $projectMemories = array_values(array_filter($projectMemories, fn ($m) => ($m['type'] ?? 'project') !== 'core'));
+            if (count($projectMemories) < 2) {
+                continue;
+            }
 
             $merged += $this->deduplicateMemories(
-                $projectMemories, $userId, $pid, $config, $mergeTemplate, $processedIds, $dryRun,
+                $projectMemories,
+                $userId,
+                $pid,
+                $config,
+                $mergeTemplate,
+                $processedIds,
+                $dryRun,
             );
         }
 
         $this->logger->info("NightlyAgent: merged {$merged} duplicate pairs");
+
         return $merged;
     }
 
@@ -478,12 +528,16 @@ class NightlyConsolidationAgent
 
         foreach ($memories as $memory) {
             $id = $memory['id'] ?? '';
-            if ($id === '' || isset($processedIds[$id])) continue;
+            if ($id === '' || isset($processedIds[$id])) {
+                continue;
+            }
 
             $neighbors = $this->vectorStore->findNeighbors($id, 5);
             foreach ($neighbors as $neighbor) {
                 $nid = $neighbor['memory_id'];
-                if (isset($processedIds[$nid])) continue;
+                if (isset($processedIds[$nid])) {
+                    continue;
+                }
 
                 if ($neighbor['score'] >= $config->similarityThreshold) {
                     $clusters[] = [
@@ -498,10 +552,14 @@ class NightlyConsolidationAgent
             }
         }
 
-        if (empty($clusters)) return 0;
+        if (empty($clusters)) {
+            return 0;
+        }
 
         foreach ($clusters as $cluster) {
-            if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) break;
+            if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) {
+                break;
+            }
             if ($cluster['memory_b'] === null) {
                 $this->logger->debug("NightlyAgent: skipping merge — neighbor memory not found for {$cluster['memory_a']['id']}");
                 continue;
@@ -514,10 +572,14 @@ class NightlyConsolidationAgent
 
             $prompt = str_replace('{cluster}', $clusterJson, $mergeTemplate);
             $result = $this->callHaiku($prompt, $config);
-            if ($result === null) continue;
+            if ($result === null) {
+                continue;
+            }
 
             $mergeResult = $this->parseMergeResult($result);
-            if ($mergeResult === null) continue;
+            if ($mergeResult === null) {
+                continue;
+            }
 
             $idA = $cluster['memory_a']['id'];
             $idB = $cluster['memory_b']['id'];
@@ -528,7 +590,8 @@ class NightlyConsolidationAgent
                 // Store merged memory
                 if ($projectId !== null) {
                     $newId = $this->memoryManager->storeProjectMemory(
-                        $userId, $projectId,
+                        $userId,
+                        $projectId,
                         $mergeResult['category'],
                         $mergeResult['content'],
                         $mergeResult['importance'],
@@ -570,6 +633,7 @@ class NightlyConsolidationAgent
         $summarizeTemplate = $this->promptLoader->load('nightly/summarize');
         if ($summarizeTemplate === '') {
             $this->logger->warning('NightlyAgent: summarize prompt not found, skipping');
+
             return 0;
         }
 
@@ -577,17 +641,23 @@ class NightlyConsolidationAgent
 
         $workspaces = $this->projectManager->listWorkspaces();
         foreach ($workspaces as $project) {
-            if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) break;
+            if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) {
+                break;
+            }
 
             $pid = $project['id'] ?? '';
-            if ($pid === '') continue;
+            if ($pid === '') {
+                continue;
+            }
 
             $projectMemories = $this->memoryManager->getProjectMemories($userId, $pid, 10000);
-            $projectMemories = array_values(array_filter($projectMemories, fn($m) => ($m['type'] ?? 'project') !== 'core'));
-            if (count($projectMemories) < $config->summarizationThreshold) continue;
+            $projectMemories = array_values(array_filter($projectMemories, fn ($m) => ($m['type'] ?? 'project') !== 'core'));
+            if (count($projectMemories) < $config->summarizationThreshold) {
+                continue;
+            }
 
             $projectName = $project['name'] ?? $pid;
-            $this->logger->info("NightlyAgent: project '{$projectName}' has " . count($projectMemories) . " memories — checking for summarizable categories");
+            $this->logger->info("NightlyAgent: project '{$projectName}' has " . count($projectMemories) . ' memories — checking for summarizable categories');
 
             // Group by category
             $byCategory = [];
@@ -597,10 +667,14 @@ class NightlyConsolidationAgent
             }
 
             foreach ($byCategory as $category => $catMemories) {
-                if (count($catMemories) < 15) continue;
-                if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) break;
+                if (count($catMemories) < 15) {
+                    continue;
+                }
+                if ($this->haikuBudgetSpent >= $config->maxBudgetUsd) {
+                    break;
+                }
 
-                $memoriesJson = json_encode(array_map(fn($m) => [
+                $memoriesJson = json_encode(array_map(fn ($m) => [
                     'id' => $m['id'] ?? '',
                     'content' => $m['content'] ?? '',
                     'importance' => $m['importance'] ?? 'normal',
@@ -613,18 +687,23 @@ class NightlyConsolidationAgent
                 );
 
                 $result = $this->callHaiku($prompt, $config);
-                if ($result === null) continue;
+                if ($result === null) {
+                    continue;
+                }
 
                 $summaries = $this->parseSummarizationResult($result);
-                if (empty($summaries)) continue;
+                if (empty($summaries)) {
+                    continue;
+                }
 
                 if ($dryRun) {
-                    $this->logger->info("NightlyAgent [DRY RUN]: would summarize " . count($catMemories) . " [{$category}] memories in '{$projectName}' → " . count($summaries) . " summaries");
+                    $this->logger->info('NightlyAgent [DRY RUN]: would summarize ' . count($catMemories) . " [{$category}] memories in '{$projectName}' → " . count($summaries) . ' summaries');
                 } else {
                     // Store new summaries
                     foreach ($summaries as $summary) {
                         $this->memoryManager->storeProjectMemory(
-                            $userId, $pid,
+                            $userId,
+                            $pid,
                             $category,
                             $summary['content'],
                             $summary['importance'] ?? 'normal',
@@ -640,7 +719,7 @@ class NightlyConsolidationAgent
                         }
                     }
 
-                    $this->logger->info("NightlyAgent: summarized " . count($catMemories) . " [{$category}] memories in '{$projectName}' → " . count($summaries));
+                    $this->logger->info('NightlyAgent: summarized ' . count($catMemories) . " [{$category}] memories in '{$projectName}' → " . count($summaries));
                 }
                 $summarized += count($catMemories);
             }
@@ -663,24 +742,32 @@ class NightlyConsolidationAgent
         $general = $this->memoryManager->getStructuredMemories($userId, 10000);
         foreach ($general as $entry) {
             $id = $entry['id'] ?? '';
-            if ($id !== '') $knownIds[$id] = true;
+            if ($id !== '') {
+                $knownIds[$id] = true;
+            }
         }
 
         $workspaces = $this->projectManager->listWorkspaces();
         foreach ($workspaces as $project) {
             $pid = $project['id'] ?? '';
-            if ($pid === '') continue;
+            if ($pid === '') {
+                continue;
+            }
 
             $projectMemories = $this->memoryManager->getProjectMemories($userId, $pid, 10000);
             foreach ($projectMemories as $entry) {
                 $id = $entry['id'] ?? '';
-                if ($id !== '') $knownIds[$id] = true;
+                if ($id !== '') {
+                    $knownIds[$id] = true;
+                }
             }
         }
 
         // Scan vector store for orphans
         foreach ($this->vectorStore->scanAllIds() as $vectorId) {
-            if (isset($knownIds[$vectorId])) continue;
+            if (isset($knownIds[$vectorId])) {
+                continue;
+            }
 
             if ($dryRun) {
                 $this->logger->info("NightlyAgent [DRY RUN]: would clean orphan vector {$vectorId}");
@@ -710,6 +797,7 @@ class NightlyConsolidationAgent
 
         if (empty($staleMemories)) {
             $this->logger->info('NightlyAgent: no stale memories to review');
+
             return $stats;
         }
 
@@ -718,6 +806,7 @@ class NightlyConsolidationAgent
         $template = $this->promptLoader->load('nightly/staleness');
         if ($template === '') {
             $this->logger->warning('NightlyAgent: staleness prompt not found, skipping');
+
             return $stats;
         }
 
@@ -741,7 +830,7 @@ class NightlyConsolidationAgent
                 }
             }
 
-            $memoriesJson = json_encode(array_map(fn($m) => [
+            $memoriesJson = json_encode(array_map(fn ($m) => [
                 'id' => $m['id'] ?? '',
                 'category' => $m['category'] ?? 'fact',
                 'content' => $m['content'] ?? '',
@@ -757,7 +846,9 @@ class NightlyConsolidationAgent
             );
 
             $result = $this->callHaiku($prompt, $config);
-            if ($result === null) continue;
+            if ($result === null) {
+                continue;
+            }
 
             $verdicts = $this->parseStalenessResult($result);
             $stats['reviewed'] += count($verdicts);
@@ -787,6 +878,7 @@ class NightlyConsolidationAgent
         }
 
         $this->logger->info("NightlyAgent: staleness review — reviewed {$stats['reviewed']}, removed {$stats['removed']}, escalated {$stats['escalated']}");
+
         return $stats;
     }
 
@@ -832,20 +924,25 @@ class NightlyConsolidationAgent
             $elapsed++;
 
             $task = $this->taskManager->getTask($taskId);
-            if (!$task) return null;
+            if (!$task) {
+                return null;
+            }
 
             $state = $task['state'] ?? '';
             if ($state === 'completed') {
                 $this->haikuBudgetSpent += (float) ($task['cost_usd'] ?? 0);
+
                 return $task['result'] ?? '';
             }
             if ($state === 'failed') {
                 $this->logger->warning("NightlyAgent: Haiku call failed for task {$taskId}");
+
                 return null;
             }
         }
 
         $this->logger->warning("NightlyAgent: Haiku call timed out for task {$taskId}");
+
         return null;
     }
 
@@ -894,7 +991,6 @@ class NightlyConsolidationAgent
             return [];
         }
 
-        return array_filter($data['summaries'], fn($s) => is_array($s) && !empty($s['content']));
+        return array_filter($data['summaries'], fn ($s) => is_array($s) && !empty($s['content']));
     }
-
 }

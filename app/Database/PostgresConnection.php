@@ -6,9 +6,13 @@ namespace App\Database;
 
 use Hyperf\Database\Connection;
 use Hyperf\Database\Query\Grammars\Grammar as QueryGrammar;
-use Hyperf\Database\Schema\Grammars\Grammar as SchemaGrammar;
 use Hyperf\Database\Query\Processors\Processor;
+use Hyperf\Database\Schema\Grammars\Grammar as SchemaGrammar;
 
+/**
+ * Custom Hyperf database connection for PostgreSQL that wires in the project's
+ * custom query grammar with ILIKE and upsert support.
+ */
 class PostgresConnection extends Connection
 {
     protected function getDefaultQueryGrammar(): QueryGrammar

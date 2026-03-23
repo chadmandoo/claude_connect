@@ -6,11 +6,14 @@ namespace App\Command;
 
 use App\Memory\MemoryManager;
 use App\Storage\PostgresStore;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputArgument;
 
+/**
+ * CLI command `memory:list` to display stored memory facts and recent conversation log for a given user.
+ */
 #[Command]
 class MemoryListCommand extends HyperfCommand
 {
@@ -24,12 +27,6 @@ class MemoryListCommand extends HyperfCommand
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addArgument('user_id', InputArgument::REQUIRED, 'The user ID');
-    }
-
     public function handle(): void
     {
         $userId = $this->input->getArgument('user_id');
@@ -39,6 +36,7 @@ class MemoryListCommand extends HyperfCommand
 
         if (empty($facts)) {
             $this->info("No memory facts for user {$userId}.");
+
             return;
         }
 
@@ -56,5 +54,11 @@ class MemoryListCommand extends HyperfCommand
                 $this->line("  - {$entry}");
             }
         }
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addArgument('user_id', InputArgument::REQUIRED, 'The user ID');
     }
 }

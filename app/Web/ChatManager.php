@@ -4,27 +4,35 @@ declare(strict_types=1);
 
 namespace App\Web;
 
-use App\StateMachine\TaskManager;
+use App\Agent\AgentManager;
+use App\Agent\AgentPromptBuilder;
+use App\Chat\AnthropicClient;
+use App\Chat\ChatConversationStore;
+use App\Chat\ChatToolHandler;
+use App\Chat\ToolDefinitions;
 use App\Claude\ProcessManager;
-use App\Memory\MemoryManager;
 use App\Conversation\ConversationManager;
 use App\Conversation\ConversationType;
 use App\Item\ItemManager;
-use App\Agent\AgentManager;
-use App\Agent\AgentPromptBuilder;
+use App\Memory\MemoryManager;
 use App\Project\ProjectManager;
 use App\Prompts\PromptLoader;
-use App\Workflow\TemplateResolver;
+use App\StateMachine\TaskManager;
 use App\Storage\PostgresStore;
-use App\Chat\AnthropicClient;
-use App\Chat\ChatToolHandler;
-use App\Chat\ChatConversationStore;
-use App\Chat\ToolDefinitions;
-use Hyperf\Di\Annotation\Inject;
+use App\Workflow\TemplateResolver;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 use Swoole\WebSocket\Server;
+use Throwable;
 
+/**
+ * Coordinates chat message handling between the WebSocket frontend and Claude CLI backend.
+ *
+ * Routes incoming messages through conversation management, prompt composition (with
+ * memory context, agent routing, and template resolution), task creation, and result
+ * delivery via WebSocket push notifications.
+ */
 class ChatManager
 {
     #[Inject]
@@ -94,6 +102,7 @@ class ChatManager
         // Branch: use Anthropic API for chat if enabled
         if ($this->config->get('mcp.chat.enabled') && $this->config->get('mcp.chat.api_key') !== '') {
             $this->sendChatApi($server, $fd, $prompt, $template, $parentTaskId, $conversationId, $images, $agentId);
+
             return;
         }
 
@@ -201,12 +210,129 @@ class ChatManager
         // Continue conversation or start new
         if ($parentTaskId !== null && $parentTaskId !== '') {
             $this->continueChat($server, $fd, $prompt, $parentTaskId, $options, $userId, $conversationId, $convType->value);
+
             return;
         }
 
         // All conversation types dispatch to external worker via supervisor queue.
         // The external task-worker.php process handles CLI execution outside of Swoole.
         $this->autoDispatchTask($server, $fd, $prompt, $userId, $conversationId, $routedProjectId, $projectName, $agentType, $options, $images);
+    }
+
+    /**
+     * Handle an @claude mention in a channel: call the Anthropic API and post the reply back.
+     */
+    public function sendChannelReply(
+        Server $server,
+        string $channelId,
+        string $userMessage,
+        string $channelName,
+    ): void {
+        $defaultAgent = $this->agentManager->getDefaultAgent();
+        $this->sendRoomAgentReply($server, $channelId, $userMessage, $channelName, $defaultAgent);
+    }
+
+    /**
+     * Handle an @slug mention in a room/channel: call the Anthropic API with agent-specific prompt.
+     */
+    public function sendRoomAgentReply(
+        Server $server,
+        string $channelId,
+        string $userMessage,
+        string $channelName,
+        array $agent,
+    ): void {
+        $agentSlug = $agent['slug'] ?? 'claude';
+        $agentName = $agent['name'] ?? 'Claude';
+        $this->logger->info("Room agent reply: channel={$channelName} agent={$agentSlug} prompt=" . mb_substr($userMessage, 0, 60));
+
+        // Strip @mention from the prompt
+        $prompt = trim(preg_replace('/@\w+\b/', '', $userMessage));
+        if ($prompt === '') {
+            $prompt = 'Hello! How can I help in this channel?';
+        }
+
+        // Build channel-aware system prompt using agent's prompt + channel context
+        $agentPrompt = $agent['system_prompt'] ?? '';
+        $systemPrompt = ($agentPrompt !== '' ? $agentPrompt . "\n\n" : '')
+            . "You are {$agentName}, participating in a channel called #{$channelName}. "
+            . 'Keep responses concise and conversational — this is a group chat, not a 1:1 session. '
+            . 'Use markdown for formatting when helpful.';
+
+        // Get recent channel messages for context
+        $recentMessages = $this->store->getChannelMessages($channelId, 20);
+        $history = [];
+        foreach ($recentMessages as $msg) {
+            $author = $msg['author'] ?? 'User';
+            $content = $msg['content'] ?? '';
+            if ($author === 'Claude') {
+                $history[] = ['role' => 'assistant', 'content' => $content];
+            } else {
+                $history[] = ['role' => 'user', 'content' => "[{$author}]: {$content}"];
+            }
+        }
+
+        // Add the triggering message if not already in history
+        if (empty($history) || ($history[count($history) - 1]['content'] ?? '') !== $userMessage) {
+            $history[] = ['role' => 'user', 'content' => $userMessage];
+        }
+
+        // Ensure history alternates roles properly for the API
+        $sanitized = [];
+        $lastRole = null;
+        foreach ($history as $msg) {
+            if ($msg['role'] === $lastRole) {
+                // Merge consecutive same-role messages
+                $sanitized[count($sanitized) - 1]['content'] .= "\n" . $msg['content'];
+            } else {
+                $sanitized[] = $msg;
+                $lastRole = $msg['role'];
+            }
+        }
+        // Ensure it starts with user
+        if (!empty($sanitized) && $sanitized[0]['role'] !== 'user') {
+            array_unshift($sanitized, ['role' => 'user', 'content' => '[Channel context start]']);
+        }
+        // Ensure it ends with user
+        if (!empty($sanitized) && $sanitized[count($sanitized) - 1]['role'] !== 'user') {
+            $sanitized[] = ['role' => 'user', 'content' => $prompt];
+        }
+
+        try {
+            $result = $this->anthropicClient->sendMessage($systemPrompt, $sanitized, [], $this->chatToolHandler);
+            $responseText = $result['response'] ?? '';
+        } catch (Throwable $e) {
+            $this->logger->error("Channel reply failed: {$e->getMessage()}");
+            $responseText = "Sorry, I encountered an error: {$e->getMessage()}";
+        }
+
+        if ($responseText === '') {
+            return;
+        }
+
+        // Save reply as a channel message attributed to the agent
+        $replyMessage = [
+            'id' => uniqid('msg_', true),
+            'channel_id' => $channelId,
+            'author' => $agentName,
+            'content' => $responseText,
+            'created_at' => time(),
+            'agent_id' => $agent['id'] ?? null,
+        ];
+        $this->store->saveChannelMessage($channelId, $replyMessage);
+
+        // Broadcast to all connected clients
+        $cache = \Hyperf\Context\ApplicationContext::getContainer()->get(\App\Storage\SwooleTableCache::class);
+        $allConns = $cache->getWsConnections();
+        foreach ($allConns as $otherFd => $otherConn) {
+            if ($server->isEstablished((int) $otherFd)) {
+                $this->pushJson($server, (int) $otherFd, [
+                    'type' => 'channels.message',
+                    'channel_id' => $channelId,
+                    'message' => $replyMessage,
+                ]);
+            }
+        }
     }
 
     private function sendChatApi(
@@ -220,7 +346,7 @@ class ChatManager
         ?string $agentId = null,
     ): void {
         $userId = $this->authManager->getUserId();
-        $this->logger->info("Web chat (API mode): prompt=" . mb_substr($prompt, 0, 60));
+        $this->logger->info('Web chat (API mode): prompt=' . mb_substr($prompt, 0, 60));
 
         // Resolve or create conversation (reuse existing routing logic)
         if ($conversationId === null && $parentTaskId !== null && $parentTaskId !== '') {
@@ -461,7 +587,7 @@ class ChatManager
 
                 $summary = $summaryResult['response'] ?? 'Previous conversation context.';
                 $this->chatConversationStore->compactHistory($conversationId, $summary, 10);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->warning("Chat history compaction failed: {$e->getMessage()}");
             }
         });
@@ -496,6 +622,7 @@ class ChatManager
                         'task_id' => $taskId,
                         'error' => 'Task not found after completion',
                     ]);
+
                     return;
                 }
 
@@ -541,7 +668,7 @@ class ChatManager
                 $prompt,
                 $options,
                 $onStderrChunk,
-                $onComplete
+                $onComplete,
             );
 
             $this->store->addUserTask($userId, $newTaskId);
@@ -581,7 +708,7 @@ class ChatManager
                 }
             }
             $this->pushJson($server, $fd, $ack);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error("Continue chat failed: {$e->getMessage()}");
             $this->pushJson($server, $fd, [
                 'type' => 'chat.error',
@@ -636,18 +763,20 @@ class ChatManager
                         $extractResult = $extractionTask['result'] ?? '';
                         $this->parseAndStoreMemory($userId, $extractResult, $projectId, $conversationId);
                         $this->taskManager->deleteTask($extractionTaskId);
+
                         return;
                     }
 
                     if ($state === 'failed') {
                         $this->taskManager->deleteTask($extractionTaskId);
+
                         return;
                     }
                 }
 
                 // Timed out — clean up the extraction task
                 $this->taskManager->deleteTask($extractionTaskId);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->warning("Memory extraction failed: {$e->getMessage()}");
             }
         });
@@ -780,7 +909,7 @@ class ChatManager
         if ($projectId !== 'general' && !empty($data['work_items']) && is_array($data['work_items'])) {
             $existingItems = $this->itemManager->listItemsByProject($projectId);
             $existingTitles = array_map(
-                fn(array $item) => mb_strtolower($item['title'] ?? ''),
+                fn (array $item) => mb_strtolower($item['title'] ?? ''),
                 $existingItems,
             );
 
@@ -809,7 +938,7 @@ class ChatManager
                     $this->itemManager->createItem($projectId, $title, null, $description, $priority, $conversationId);
                     $existingTitles[] = mb_strtolower($title);
                     $this->logger->info("Created work item from extraction: {$title}");
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->logger->warning("Failed to create extracted work item: {$e->getMessage()}");
                 }
             }
@@ -881,129 +1010,13 @@ class ChatManager
         return null;
     }
 
-    /**
-     * Handle an @claude mention in a channel: call the Anthropic API and post the reply back.
-     */
-    public function sendChannelReply(
-        Server $server,
-        string $channelId,
-        string $userMessage,
-        string $channelName,
-    ): void {
-        $defaultAgent = $this->agentManager->getDefaultAgent();
-        $this->sendRoomAgentReply($server, $channelId, $userMessage, $channelName, $defaultAgent);
-    }
-
-    /**
-     * Handle an @slug mention in a room/channel: call the Anthropic API with agent-specific prompt.
-     */
-    public function sendRoomAgentReply(
-        Server $server,
-        string $channelId,
-        string $userMessage,
-        string $channelName,
-        array $agent,
-    ): void {
-        $agentSlug = $agent['slug'] ?? 'claude';
-        $agentName = $agent['name'] ?? 'Claude';
-        $this->logger->info("Room agent reply: channel={$channelName} agent={$agentSlug} prompt=" . mb_substr($userMessage, 0, 60));
-
-        // Strip @mention from the prompt
-        $prompt = trim(preg_replace('/@\w+\b/', '', $userMessage));
-        if ($prompt === '') {
-            $prompt = "Hello! How can I help in this channel?";
-        }
-
-        // Build channel-aware system prompt using agent's prompt + channel context
-        $agentPrompt = $agent['system_prompt'] ?? '';
-        $systemPrompt = ($agentPrompt !== '' ? $agentPrompt . "\n\n" : '')
-            . "You are {$agentName}, participating in a channel called #{$channelName}. "
-            . "Keep responses concise and conversational — this is a group chat, not a 1:1 session. "
-            . "Use markdown for formatting when helpful.";
-
-        // Get recent channel messages for context
-        $recentMessages = $this->store->getChannelMessages($channelId, 20);
-        $history = [];
-        foreach ($recentMessages as $msg) {
-            $author = $msg['author'] ?? 'User';
-            $content = $msg['content'] ?? '';
-            if ($author === 'Claude') {
-                $history[] = ['role' => 'assistant', 'content' => $content];
-            } else {
-                $history[] = ['role' => 'user', 'content' => "[{$author}]: {$content}"];
-            }
-        }
-
-        // Add the triggering message if not already in history
-        if (empty($history) || ($history[count($history) - 1]['content'] ?? '') !== $userMessage) {
-            $history[] = ['role' => 'user', 'content' => $userMessage];
-        }
-
-        // Ensure history alternates roles properly for the API
-        $sanitized = [];
-        $lastRole = null;
-        foreach ($history as $msg) {
-            if ($msg['role'] === $lastRole) {
-                // Merge consecutive same-role messages
-                $sanitized[count($sanitized) - 1]['content'] .= "\n" . $msg['content'];
-            } else {
-                $sanitized[] = $msg;
-                $lastRole = $msg['role'];
-            }
-        }
-        // Ensure it starts with user
-        if (!empty($sanitized) && $sanitized[0]['role'] !== 'user') {
-            array_unshift($sanitized, ['role' => 'user', 'content' => '[Channel context start]']);
-        }
-        // Ensure it ends with user
-        if (!empty($sanitized) && $sanitized[count($sanitized) - 1]['role'] !== 'user') {
-            $sanitized[] = ['role' => 'user', 'content' => $prompt];
-        }
-
-        try {
-            $result = $this->anthropicClient->sendMessage($systemPrompt, $sanitized, [], $this->chatToolHandler);
-            $responseText = $result['response'] ?? '';
-        } catch (\Throwable $e) {
-            $this->logger->error("Channel reply failed: {$e->getMessage()}");
-            $responseText = "Sorry, I encountered an error: {$e->getMessage()}";
-        }
-
-        if ($responseText === '') {
-            return;
-        }
-
-        // Save reply as a channel message attributed to the agent
-        $replyMessage = [
-            'id' => uniqid('msg_', true),
-            'channel_id' => $channelId,
-            'author' => $agentName,
-            'content' => $responseText,
-            'created_at' => time(),
-            'agent_id' => $agent['id'] ?? null,
-        ];
-        $this->store->saveChannelMessage($channelId, $replyMessage);
-
-        // Broadcast to all connected clients
-        $cache = \Hyperf\Context\ApplicationContext::getContainer()->get(\App\Storage\SwooleTableCache::class);
-        $allConns = $cache->getWsConnections();
-        foreach ($allConns as $otherFd => $otherConn) {
-            if ($server->isEstablished((int)$otherFd)) {
-                $this->pushJson($server, (int)$otherFd, [
-                    'type' => 'channels.message',
-                    'channel_id' => $channelId,
-                    'message' => $replyMessage,
-                ]);
-            }
-        }
-    }
-
     private function pushJson(Server $server, int $fd, array $data): void
     {
         try {
             if ($server->isEstablished($fd)) {
                 $server->push($fd, json_encode($data));
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->debug("WebSocket push failed for fd={$fd}: {$e->getMessage()}");
         }
     }

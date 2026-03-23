@@ -1,0 +1,13 @@
+includes:
+    - vendor/phpstan/phpstan-mockery/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    phpVersion: 80300
+    level: 6
+    paths:
+        - app
+        - tests
+    excludePaths:
+        - app/Command
+    tmpDir: runtime/phpstan

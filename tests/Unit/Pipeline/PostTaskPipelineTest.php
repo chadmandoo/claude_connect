@@ -11,12 +11,21 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
+/**
+ * Tests for PostTaskPipeline.
+ *
+ * Covers: stage registration and execution, running with no stages, filtering by stage name,
+ * exception handling (continues to next stage), shouldRun=false skipping, failure logging,
+ * unknown stage names, and duplicate stage overwriting.
+ */
 class PostTaskPipelineTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
     private PostTaskPipeline $pipeline;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void
@@ -88,7 +97,7 @@ class PostTaskPipelineTest extends TestCase
         $failingStage = Mockery::mock(PipelineStage::class);
         $failingStage->shouldReceive('name')->andReturn('failing_stage');
         $failingStage->shouldReceive('shouldRun')->once()->andReturn(true);
-        $failingStage->shouldReceive('execute')->once()->andThrow(new \RuntimeException('Stage exploded'));
+        $failingStage->shouldReceive('execute')->once()->andThrow(new RuntimeException('Stage exploded'));
 
         $successStage = Mockery::mock(PipelineStage::class);
         $successStage->shouldReceive('name')->andReturn('success_stage');
@@ -97,7 +106,7 @@ class PostTaskPipelineTest extends TestCase
 
         $this->logger->shouldReceive('error')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'failing_stage') && str_contains($msg, 'Stage exploded'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'failing_stage') && str_contains($msg, 'Stage exploded'));
 
         $this->pipeline->registerStage($failingStage);
         $this->pipeline->registerStage($successStage);
@@ -119,7 +128,7 @@ class PostTaskPipelineTest extends TestCase
 
         $this->logger->shouldReceive('debug')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'skipped_stage') && str_contains($msg, 'shouldRun=false'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'skipped_stage') && str_contains($msg, 'shouldRun=false'));
 
         $this->pipeline->registerStage($stage);
 
@@ -140,7 +149,7 @@ class PostTaskPipelineTest extends TestCase
 
         $this->logger->shouldReceive('warning')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'warn_stage') && str_contains($msg, 'something went wrong'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'warn_stage') && str_contains($msg, 'something went wrong'));
 
         $this->pipeline->registerStage($stage);
 

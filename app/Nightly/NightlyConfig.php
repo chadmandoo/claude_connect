@@ -4,19 +4,36 @@ declare(strict_types=1);
 
 namespace App\Nightly;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use Hyperf\Contract\ConfigInterface;
 
+/**
+ * Immutable configuration for the nightly consolidation agent.
+ *
+ * Loads schedule, budget limits, batch sizes, and thresholds for deduplication,
+ * summarization, and staleness detection from the application config.
+ */
 class NightlyConfig
 {
     public readonly bool $enabled;
+
     public readonly int $runHour;
+
     public readonly int $runMinute;
+
     public readonly float $maxBudgetUsd;
+
     public readonly float $haikuCallBudgetUsd;
+
     public readonly int $batchSize;
+
     public readonly int $summarizationThreshold;
+
     public readonly float $similarityThreshold;
+
     public readonly int $stalenessThresholdDays;
+
     public readonly float $stalenessConfidenceThreshold;
 
     public function __construct(ConfigInterface $config)
@@ -38,7 +55,7 @@ class NightlyConfig
      */
     public function shouldRunNow(): bool
     {
-        $now = new \DateTimeImmutable('now', new \DateTimeZone('America/Chicago'));
+        $now = new DateTimeImmutable('now', new DateTimeZone('America/Chicago'));
         $hour = (int) $now->format('G');
         $minute = (int) $now->format('i');
 

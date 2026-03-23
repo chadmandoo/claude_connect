@@ -6,14 +6,6 @@ namespace App\Project;
 
 enum ProjectState: string
 {
-    case PLANNING = 'planning';
-    case ACTIVE = 'active';
-    case PAUSED = 'paused';
-    case STALLED = 'stalled';
-    case COMPLETED = 'completed';
-    case CANCELLED = 'cancelled';
-    case WORKSPACE = 'workspace';
-
     public function allowedTransitions(): array
     {
         return match ($this) {
@@ -49,4 +41,11 @@ enum ProjectState: string
     {
         return $this === self::WORKSPACE;
     }
+    case PLANNING = 'planning';
+    case ACTIVE = 'active';
+    case PAUSED = 'paused';
+    case STALLED = 'stalled';
+    case COMPLETED = 'completed';
+    case CANCELLED = 'cancelled';
+    case WORKSPACE = 'workspace';
 }

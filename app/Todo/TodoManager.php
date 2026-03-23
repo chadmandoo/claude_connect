@@ -7,7 +7,14 @@ namespace App\Todo;
 use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
+/**
+ * Manages todo sections and items for the personal task tracking feature.
+ *
+ * Provides CRUD, reordering, toggle completion, cross-section moves,
+ * completion counts, and bulk clear of completed items.
+ */
 class TodoManager
 {
     #[Inject]
@@ -41,6 +48,7 @@ class TodoManager
         ];
 
         $this->store->createTodoSection($id, $section);
+
         return $id;
     }
 
@@ -112,6 +120,7 @@ class TodoManager
         ];
 
         $this->store->createTodoItem($id, $item);
+
         return $id;
     }
 
@@ -132,7 +141,7 @@ class TodoManager
     {
         $item = $this->store->getTodoItem($id);
         if (!$item) {
-            throw new \RuntimeException("Todo item {$id} not found");
+            throw new RuntimeException("Todo item {$id} not found");
         }
 
         $isDone = ($item['done'] ?? '0') === '1';
@@ -145,6 +154,7 @@ class TodoManager
         ];
 
         $this->store->updateTodoItem($id, $update);
+
         return $newDone;
     }
 
@@ -199,6 +209,7 @@ class TodoManager
                 $done++;
             }
         }
+
         return ['total' => $total, 'done' => $done, 'remaining' => $total - $done];
     }
 
@@ -215,6 +226,7 @@ class TodoManager
                 $cleared++;
             }
         }
+
         return $cleared;
     }
 }

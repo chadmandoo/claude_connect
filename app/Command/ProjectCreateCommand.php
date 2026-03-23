@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Project\ProjectManager;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * CLI command `project:create` to create a new persistent project workspace
+ * with an optional working directory and description.
+ */
 #[Command]
 class ProjectCreateCommand extends HyperfCommand
 {
@@ -25,14 +29,6 @@ class ProjectCreateCommand extends HyperfCommand
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addArgument('project_name', InputArgument::REQUIRED, 'Project name');
-        $this->addOption('cwd', null, InputOption::VALUE_OPTIONAL, 'Working directory for the project');
-        $this->addOption('description', 'd', InputOption::VALUE_OPTIONAL, 'Project description', '');
-    }
-
     public function handle(): void
     {
         $name = $this->input->getArgument('project_name');
@@ -44,6 +40,7 @@ class ProjectCreateCommand extends HyperfCommand
         $existing = $manager->getByName($name);
         if ($existing) {
             $this->error("Project '{$name}' already exists (id: {$existing['id']})");
+
             return;
         }
 
@@ -55,5 +52,13 @@ class ProjectCreateCommand extends HyperfCommand
         if ($cwd) {
             $this->line("  Working directory: {$cwd}");
         }
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addArgument('project_name', InputArgument::REQUIRED, 'Project name');
+        $this->addOption('cwd', null, InputOption::VALUE_OPTIONAL, 'Working directory for the project');
+        $this->addOption('description', 'd', InputOption::VALUE_OPTIONAL, 'Project description', '');
     }
 }

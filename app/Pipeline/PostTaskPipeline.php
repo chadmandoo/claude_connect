@@ -5,7 +5,14 @@ declare(strict_types=1);
 namespace App\Pipeline;
 
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Executes a sequence of registered pipeline stages after a task completes.
+ *
+ * Runs stages in order with error isolation (no stage failure aborts the pipeline),
+ * optional stage filtering via template configuration, and per-stage timing metrics.
+ */
 class PostTaskPipeline
 {
     /** @var array<string, PipelineStage> */
@@ -13,7 +20,8 @@ class PostTaskPipeline
 
     public function __construct(
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function registerStage(PipelineStage $stage): void
     {
@@ -42,6 +50,7 @@ class PostTaskPipeline
             }
 
             $start = microtime(true);
+
             try {
                 $result = $stage->execute($context);
                 $duration = round((microtime(true) - $start) * 1000);
@@ -53,7 +62,7 @@ class PostTaskPipeline
                     $error = $result['error'] ?? 'unknown';
                     $this->logger->warning("Pipeline: stage '{$stage->name()}' failed in {$duration}ms: {$error}");
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $duration = round((microtime(true) - $start) * 1000);
                 $this->logger->error("Pipeline: stage '{$stage->name()}' threw exception in {$duration}ms: {$e->getMessage()}");
             }

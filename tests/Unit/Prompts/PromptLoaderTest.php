@@ -11,12 +11,19 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for PromptLoader.
+ *
+ * Covers: loading prompt files by name (existing and missing), extraction prompt loading
+ * with fallback to task type, and building generic prompts with optional memory context.
+ */
 class PromptLoaderTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private PromptLoader $loader;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void

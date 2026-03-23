@@ -9,14 +9,23 @@ use Hyperf\Redis\Redis;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for RedisStore.
+ *
+ * Covers: web auth token operations (set, has, delete), distributed locks (acquire, release,
+ * has), chat history (append, get with limit, trim, delete), active project state
+ * management, and health check ping (success, PONG response, failure, exception).
+ */
 class RedisStoreTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private RedisStore $store;
+
     private Redis|Mockery\MockInterface $redis;
 
     protected function setUp(): void
@@ -317,7 +326,7 @@ class RedisStoreTest extends TestCase
     {
         $this->redis->shouldReceive('ping')
             ->once()
-            ->andThrow(new \RuntimeException('Connection refused'));
+            ->andThrow(new RuntimeException('Connection refused'));
 
         $this->assertFalse($this->store->ping());
     }

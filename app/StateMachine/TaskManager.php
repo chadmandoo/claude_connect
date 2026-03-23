@@ -8,7 +8,15 @@ use App\Storage\PostgresStore;
 use App\Storage\SwooleTableCache;
 use Hyperf\Di\Annotation\Inject;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
+/**
+ * Manages task lifecycle including creation, state transitions, and metadata updates.
+ *
+ * Uses PostgresStore for durable persistence and SwooleTableCache for fast in-memory
+ * lookups of active tasks. Enforces valid state machine transitions and records
+ * full transition history.
+ */
 class TaskManager
 {
     #[Inject]
@@ -57,14 +65,14 @@ class TaskManager
     {
         $task = $this->store->getTask($taskId);
         if (!$task) {
-            throw new \RuntimeException("Task {$taskId} not found");
+            throw new RuntimeException("Task {$taskId} not found");
         }
 
         $currentState = TaskState::from($task['state']);
 
         if (!$currentState->canTransitionTo($targetState)) {
-            throw new \RuntimeException(
-                "Invalid transition from {$currentState->value} to {$targetState->value} for task {$taskId}"
+            throw new RuntimeException(
+                "Invalid transition from {$currentState->value} to {$targetState->value} for task {$taskId}",
             );
         }
 
@@ -190,6 +198,7 @@ class TaskManager
         if (!$task || empty($task['images'])) {
             return [];
         }
+
         return json_decode($task['images'], true) ?: [];
     }
 
@@ -204,6 +213,7 @@ class TaskManager
         if (!$task || empty($task['progress'])) {
             return null;
         }
+
         return json_decode($task['progress'], true) ?: null;
     }
 }

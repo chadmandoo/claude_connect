@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Project\ProjectManager;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 
+/**
+ * CLI command `project:list` to display all registered project workspaces with their details.
+ */
 #[Command]
 class ProjectListCommand extends HyperfCommand
 {
@@ -29,6 +32,7 @@ class ProjectListCommand extends HyperfCommand
 
         if (empty($workspaces)) {
             $this->info('No project workspaces found.');
+
             return;
         }
 

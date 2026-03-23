@@ -9,6 +9,10 @@ use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Performs scheduled PostgreSQL database backups using pg_dump, compresses output with gzip,
+ * and prunes old backup files beyond the configured retention period.
+ */
 class DatabaseBackupAgent
 {
     #[Inject]
@@ -30,8 +34,9 @@ class DatabaseBackupAgent
 
         $backupDir = $backupConfig['backup_dir'];
         if (!is_dir($backupDir)) {
-            if (!mkdir($backupDir, 0750, true)) {
+            if (!mkdir($backupDir, 0o750, true)) {
                 $this->logger->error("DatabaseBackup: failed to create backup directory: {$backupDir}");
+
                 return "Error: failed to create backup directory: {$backupDir}";
             }
         }
@@ -65,12 +70,12 @@ class DatabaseBackupAgent
             $dbPort,
             escapeshellarg($dbUser),
             escapeshellarg($dbName),
-            escapeshellarg($filepath)
+            escapeshellarg($filepath),
         );
 
         $output = [];
         $returnCode = 0;
-        exec($cmd . ' 2>&1', $output, $returnCode);
+        exec($cmd . ' 2>&1', $output, $returnCode); // sast-ignore: pg_dump pipe to gzip requires shell exec; ProcessManager is for Claude CLI tasks only
 
         if ($returnCode !== 0) {
             $error = implode("\n", $output);
@@ -79,6 +84,7 @@ class DatabaseBackupAgent
             if (file_exists($filepath)) {
                 unlink($filepath);
             }
+
             return "Error: pg_dump failed (code {$returnCode}): " . mb_substr($error, 0, 300);
         }
 
@@ -97,7 +103,7 @@ class DatabaseBackupAgent
 
         $this->systemChannel->post(
             "**Database backup complete** — `{$filename}` ({$fileSizeHuman})" . ($pruned > 0 ? ", pruned {$pruned} old backup(s)" : ''),
-            'System'
+            'System',
         );
 
         return $result;
@@ -118,7 +124,7 @@ class DatabaseBackupAgent
             if ($mtime !== false && $mtime < $cutoff) {
                 if (unlink($file)) {
                     $pruned++;
-                    $this->logger->info("DatabaseBackup: pruned old backup: " . basename($file));
+                    $this->logger->info('DatabaseBackup: pruned old backup: ' . basename($file));
                 }
             }
         }
@@ -146,6 +152,7 @@ class DatabaseBackupAgent
             $bytes /= 1024;
             $i++;
         }
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 }

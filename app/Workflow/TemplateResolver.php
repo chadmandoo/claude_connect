@@ -6,11 +6,18 @@ namespace App\Workflow;
 
 use Hyperf\Contract\ConfigInterface;
 
+/**
+ * Resolves workflow templates by explicit name or auto-detection from prompt keywords.
+ *
+ * Templates define execution parameters (max turns, budget, pipeline stages) for different
+ * task types. Uses longest-keyword-match scoring to avoid false positives during auto-detection.
+ */
 class TemplateResolver
 {
     public function __construct(
         private readonly ConfigInterface $config,
-    ) {}
+    ) {
+    }
 
     /**
      * Resolve a workflow template by explicit name or auto-detection from prompt.

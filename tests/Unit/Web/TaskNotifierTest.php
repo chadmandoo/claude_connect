@@ -12,18 +12,31 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Swoole\WebSocket\Server;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for TaskNotifier.
+ *
+ * Covers: WebSocket server assignment, state change notifications (system channel posting,
+ * duplicate prevention, non-user-facing source filtering, user-targeted broadcasting),
+ * task result delivery (with images, conversation ID filtering), progress broadcasting,
+ * graceful handling of push exceptions and unestablished connections, and broadcastToUser.
+ */
 class TaskNotifierTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private TaskNotifier $notifier;
+
     private SwooleTableCache|Mockery\MockInterface $cache;
+
     private LoggerInterface|Mockery\MockInterface $logger;
+
     private SystemChannel|Mockery\MockInterface $systemChannel;
+
     private PostgresStore|Mockery\MockInterface $store;
 
     protected function setUp(): void
@@ -182,6 +195,7 @@ class TaskNotifierTest extends TestCase
         $server->shouldReceive('push')
             ->with(1, Mockery::on(function (string $json) {
                 $data = json_decode($json, true);
+
                 return $data['type'] === 'task.state_changed'
                     && $data['state'] === 'completed'
                     && isset($data['result_preview']);
@@ -213,6 +227,7 @@ class TaskNotifierTest extends TestCase
         $server->shouldReceive('push')
             ->with(1, Mockery::on(function (string $json) {
                 $data = json_decode($json, true);
+
                 return $data['type'] === 'task.state_changed'
                     && $data['state'] === 'failed'
                     && $data['error'] === 'Something went wrong';
@@ -245,6 +260,7 @@ class TaskNotifierTest extends TestCase
         $server->shouldReceive('push')
             ->with(1, Mockery::on(function (string $json) {
                 $data = json_decode($json, true);
+
                 return $data['type'] === 'chat.result'
                     && $data['conversation_id'] === 'conv-1'
                     && $data['result'] === 'Hello world response'
@@ -293,6 +309,7 @@ class TaskNotifierTest extends TestCase
         $server->shouldReceive('push')
             ->with(1, Mockery::on(function (string $json) {
                 $data = json_decode($json, true);
+
                 return $data['type'] === 'task.progress'
                     && $data['task_id'] === 'task-1'
                     && $data['elapsed'] === 10
@@ -329,7 +346,7 @@ class TaskNotifierTest extends TestCase
         $server->shouldReceive('push')
             ->with(1, Mockery::type('string'))
             ->once()
-            ->andThrow(new \RuntimeException('Connection lost'));
+            ->andThrow(new RuntimeException('Connection lost'));
 
         $server->shouldReceive('isEstablished')->with(2)->once()->andReturn(true);
         $server->shouldReceive('push')
@@ -338,7 +355,7 @@ class TaskNotifierTest extends TestCase
 
         $this->logger->shouldReceive('debug')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'push failed') && str_contains($msg, 'fd=1'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'push failed') && str_contains($msg, 'fd=1'));
 
         $this->notifier->notifyProgress('task-1', 10, 5);
     }
@@ -423,6 +440,7 @@ class TaskNotifierTest extends TestCase
         $server->shouldReceive('push')
             ->with(1, Mockery::on(function (string $json) use ($images) {
                 $data = json_decode($json, true);
+
                 return $data['type'] === 'chat.result'
                     && $data['images'] === $images;
             }))

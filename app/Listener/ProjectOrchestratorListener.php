@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace App\Listener;
 
-use App\Project\ProjectOrchestrator;
 use App\Project\ProjectManager;
+use App\Project\ProjectOrchestrator;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to launch the ProjectOrchestrator on worker 0.
+ *
+ * Ensures the default "General" workspace exists and starts the orchestrator loop
+ * that drives multi-step project execution in a background coroutine.
+ */
 #[Listener]
 class ProjectOrchestratorListener implements ListenerInterface
 {
@@ -49,7 +56,7 @@ class ProjectOrchestratorListener implements ListenerInterface
                 $manager = $this->container->get(ProjectManager::class);
                 $generalId = $manager->ensureGeneralProject($userId);
                 $logger->info("ProjectOrchestrator: General project ensured (id: {$generalId})");
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->warning("ProjectOrchestrator: failed to ensure General project: {$e->getMessage()}");
             }
 

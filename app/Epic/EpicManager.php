@@ -7,7 +7,14 @@ namespace App\Epic;
 use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
+/**
+ * Manages epic lifecycle including creation, state transitions, and automatic state refresh.
+ *
+ * Handles backlog epic provisioning, item-to-epic relationships, and cascading state
+ * updates when child items change (e.g., auto-completing an epic when all items are done).
+ */
 class EpicManager
 {
     #[Inject]
@@ -81,6 +88,7 @@ class EpicManager
         if (!$wasSet) {
             // Another process beat us — clean up our duplicate and use theirs
             $this->store->deleteEpic($epicId);
+
             return $this->store->getProjectBacklogEpic($projectId);
         }
 
@@ -96,7 +104,7 @@ class EpicManager
     {
         $epic = $this->store->getEpic($epicId);
         if (!$epic) {
-            throw new \RuntimeException("Epic {$epicId} not found");
+            throw new RuntimeException("Epic {$epicId} not found");
         }
 
         if (($epic['is_backlog'] ?? '0') === '1') {
@@ -115,18 +123,18 @@ class EpicManager
     {
         $epic = $this->store->getEpic($epicId);
         if (!$epic) {
-            throw new \RuntimeException("Epic {$epicId} not found");
+            throw new RuntimeException("Epic {$epicId} not found");
         }
 
         if (($epic['is_backlog'] ?? '0') === '1') {
-            throw new \RuntimeException('Cannot transition backlog epic');
+            throw new RuntimeException('Cannot transition backlog epic');
         }
 
         $currentState = EpicState::from($epic['state']);
 
         if (!$currentState->canTransitionTo($targetState)) {
-            throw new \RuntimeException(
-                "Invalid epic transition from {$currentState->value} to {$targetState->value}"
+            throw new RuntimeException(
+                "Invalid epic transition from {$currentState->value} to {$targetState->value}",
             );
         }
 
@@ -197,11 +205,11 @@ class EpicManager
     {
         $epic = $this->store->getEpic($epicId);
         if (!$epic) {
-            throw new \RuntimeException("Epic {$epicId} not found");
+            throw new RuntimeException("Epic {$epicId} not found");
         }
 
         if (($epic['is_backlog'] ?? '0') === '1') {
-            throw new \RuntimeException('Cannot delete backlog epic');
+            throw new RuntimeException('Cannot delete backlog epic');
         }
 
         // Move items to backlog

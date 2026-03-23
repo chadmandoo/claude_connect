@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace App\Web;
 
+use App\Scheduler\SystemChannel;
 use App\Storage\PostgresStore;
 use App\Storage\SwooleTableCache;
-use App\Scheduler\SystemChannel;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 use Swoole\WebSocket\Server;
+use Throwable;
 
+/**
+ * Broadcasts task state changes, results, and progress updates to WebSocket clients.
+ *
+ * Filters internal tasks (routing, extraction, cleanup) from user-facing notifications
+ * and uses atomic claim logic to prevent duplicate notifications across workers.
+ */
 class TaskNotifier
 {
     #[Inject]
@@ -155,7 +162,7 @@ class TaskNotifier
                 if ($this->server->isEstablished($fd)) {
                     $this->server->push($fd, $json);
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->debug("TaskNotifier: push failed for fd={$fd}: {$e->getMessage()}");
             }
         }

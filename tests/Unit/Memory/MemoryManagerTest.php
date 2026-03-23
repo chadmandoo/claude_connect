@@ -14,15 +14,26 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for MemoryManager.
+ *
+ * Covers: storing/retrieving/deleting structured and project-scoped memories,
+ * key-value fact operations (remember, forget, getFacts), conversation logging,
+ * memory counts, updates with optional project scoping, and vector store cleanup.
+ */
 class MemoryManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private MemoryManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private EmbeddingService|Mockery\MockInterface $embeddingService;
+
     private VectorStore|Mockery\MockInterface $vectorStore;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void
@@ -59,7 +70,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'stored'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'stored'));
 
         $id = $this->manager->storeMemory('user-1', 'preference', 'Likes dark mode');
 
@@ -145,7 +156,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'deleted structured entry') && str_contains($msg, 'mem_abc123'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'deleted structured entry') && str_contains($msg, 'mem_abc123'));
 
         $this->manager->deleteStructuredMemory('user-1', 'mem_abc123');
     }
@@ -158,7 +169,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'set fact') && str_contains($msg, 'favorite_color'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'set fact') && str_contains($msg, 'favorite_color'));
 
         $this->manager->remember('user-1', 'favorite_color', 'blue');
     }
@@ -171,7 +182,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'deleted fact') && str_contains($msg, 'favorite_color'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'deleted fact') && str_contains($msg, 'favorite_color'));
 
         $this->manager->forget('user-1', 'favorite_color');
     }
@@ -215,7 +226,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('debug')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'logged conversation'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'logged conversation'));
 
         $this->manager->logConversation('user-1', 'Discussed project architecture');
     }
@@ -254,7 +265,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'updated entry') && str_contains($msg, 'mem_abc123'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'updated entry') && str_contains($msg, 'mem_abc123'));
 
         $this->manager->updateMemory('user-1', 'mem_abc123', $updates);
     }
@@ -269,7 +280,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'updated entry'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'updated entry'));
 
         $this->manager->updateMemory('user-1', 'mem_abc123', $updates, 'proj-1');
     }
@@ -291,7 +302,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'stored'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'stored'));
 
         $id = $this->manager->storeProjectMemory('user-1', 'proj-1', 'architecture', 'Uses microservices');
 
@@ -328,7 +339,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'deleted project entry'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'deleted project entry'));
 
         $this->manager->deleteProjectMemory('user-1', 'proj-1', 'mem_abc123');
     }
@@ -345,7 +356,7 @@ class MemoryManagerTest extends TestCase
 
         $this->logger->shouldReceive('info')
             ->once()
-            ->withArgs(fn(string $msg) => str_contains($msg, 'deleted entry') && str_contains($msg, 'mem_abc123'));
+            ->withArgs(fn (string $msg) => str_contains($msg, 'deleted entry') && str_contains($msg, 'mem_abc123'));
 
         $this->manager->deleteAnyMemory('user-1', 'mem_abc123');
     }

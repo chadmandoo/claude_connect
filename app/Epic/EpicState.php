@@ -6,11 +6,6 @@ namespace App\Epic;
 
 enum EpicState: string
 {
-    case OPEN = 'open';
-    case IN_PROGRESS = 'in_progress';
-    case COMPLETED = 'completed';
-    case CANCELLED = 'cancelled';
-
     public function allowedTransitions(): array
     {
         return match ($this) {
@@ -33,4 +28,8 @@ enum EpicState: string
             default => false,
         };
     }
+    case OPEN = 'open';
+    case IN_PROGRESS = 'in_progress';
+    case COMPLETED = 'completed';
+    case CANCELLED = 'cancelled';
 }

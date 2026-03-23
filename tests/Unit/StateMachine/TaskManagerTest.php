@@ -11,15 +11,26 @@ use App\Storage\SwooleTableCache;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for TaskManager.
+ *
+ * Covers: task creation (UUID, store/cache persistence, options, session ID), state
+ * transitions (valid and invalid, with started_at/completed_at timestamps, extra data),
+ * cache-to-store fallback retrieval, PID/result/error setters, listing, history, and
+ * Claude session ID and parent task ID assignment.
+ */
 class TaskManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private TaskManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private SwooleTableCache|Mockery\MockInterface $cache;
 
     protected function setUp(): void
@@ -42,7 +53,7 @@ class TaskManagerTest extends TestCase
 
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $taskId
+            $taskId,
         );
     }
 
@@ -62,7 +73,7 @@ class TaskManagerTest extends TestCase
             });
         $this->cache->shouldReceive('setActiveTask')
             ->once()
-            ->withArgs(fn($id, $state) => $state === 'pending');
+            ->withArgs(fn ($id, $state) => $state === 'pending');
         $this->store->shouldReceive('addTaskHistory')
             ->once()
             ->withArgs(function ($id, $entry) {
@@ -78,6 +89,7 @@ class TaskManagerTest extends TestCase
             ->once()
             ->withArgs(function ($id, $data) {
                 $options = json_decode($data['options'], true);
+
                 return $options['max_turns'] === 10 && $options['model'] === 'opus';
             });
         $this->cache->shouldReceive('setActiveTask')->once();
@@ -90,7 +102,7 @@ class TaskManagerTest extends TestCase
     {
         $this->store->shouldReceive('createTask')
             ->once()
-            ->withArgs(fn($id, $data) => $data['session_id'] === '');
+            ->withArgs(fn ($id, $data) => $data['session_id'] === '');
         $this->cache->shouldReceive('setActiveTask')->once();
         $this->store->shouldReceive('addTaskHistory')->once();
 
@@ -153,7 +165,7 @@ class TaskManagerTest extends TestCase
         $this->store->shouldReceive('getTask')
             ->andReturn(['state' => 'pending']);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Invalid transition from pending to completed');
 
         $this->manager->transition('task-1', TaskState::COMPLETED);
@@ -164,7 +176,7 @@ class TaskManagerTest extends TestCase
         $this->store->shouldReceive('getTask')
             ->andReturn(null);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Task task-missing not found');
 
         $this->manager->transition('task-missing', TaskState::RUNNING);
@@ -193,11 +205,11 @@ class TaskManagerTest extends TestCase
             ->andReturn(['state' => 'pending', 'started_at' => 0]);
         $this->store->shouldReceive('updateTask')
             ->once()
-            ->withArgs(fn($id, $data) => $data['custom_field'] === 'value');
+            ->withArgs(fn ($id, $data) => $data['custom_field'] === 'value');
         $this->cache->shouldReceive('updateTaskState')->once();
         $this->store->shouldReceive('addTaskHistory')
             ->once()
-            ->withArgs(fn($id, $entry) => $entry['extra'] === ['custom_field' => 'value']);
+            ->withArgs(fn ($id, $entry) => $entry['extra'] === ['custom_field' => 'value']);
 
         $this->manager->transition('task-1', TaskState::RUNNING, ['custom_field' => 'value']);
     }

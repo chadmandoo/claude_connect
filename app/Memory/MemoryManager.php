@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace App\Memory;
 
-use App\Storage\PostgresStore;
 use App\Embedding\EmbeddingService;
 use App\Embedding\VectorStore;
+use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Central manager for the structured memory system, handling storage, retrieval, and
+ * contextual ranking of memories for prompt injection.
+ *
+ * Supports general and project-scoped memories with hybrid ranking (vector + keyword),
+ * core memory pinning, async embedding, and scoped context building for system prompts.
+ */
 class MemoryManager
 {
     private const MAX_CONTEXT_CHARS = 8000;
@@ -41,7 +49,7 @@ class MemoryManager
         if ($agentId !== null && $agentId !== '') {
             $structuredMemories = $this->store->getMemoriesForAgent($userId, $agentId, null, null, 200);
             // Filter to general (no project) memories only for this method
-            $structuredMemories = array_filter($structuredMemories, fn($m) => empty($m['project_id']));
+            $structuredMemories = array_filter($structuredMemories, fn ($m) => empty($m['project_id']));
             $structuredMemories = array_values($structuredMemories);
         } else {
             $structuredMemories = $this->store->getMemoryEntries($userId, 200);
@@ -150,8 +158,14 @@ class MemoryManager
 
         // Async embed for vector search (non-blocking — nightly backfill catches failures)
         if ($this->embeddingService->isAvailable()) {
-            \Swoole\Coroutine::create(fn() => $this->embeddingService->embedMemory(
-                $id, $userId, 'general', $category, $importance, $content, $entry['created_at'],
+            \Swoole\Coroutine::create(fn () => $this->embeddingService->embedMemory(
+                $id,
+                $userId,
+                'general',
+                $category,
+                $importance,
+                $content,
+                $entry['created_at'],
             ));
         }
 
@@ -230,8 +244,14 @@ class MemoryManager
 
         // Async embed for vector search
         if ($this->embeddingService->isAvailable()) {
-            \Swoole\Coroutine::create(fn() => $this->embeddingService->embedMemory(
-                $id, $userId, $projectId, $category, $importance, $content, $entry['created_at'],
+            \Swoole\Coroutine::create(fn () => $this->embeddingService->embedMemory(
+                $id,
+                $userId,
+                $projectId,
+                $category,
+                $importance,
+                $content,
+                $entry['created_at'],
             ));
         }
 
@@ -380,7 +400,7 @@ class MemoryManager
      */
     private function recordSurfaced(array $ids): void
     {
-        $ids = array_filter($ids, fn($id) => $id !== '' && $id !== null);
+        $ids = array_filter($ids, fn ($id) => $id !== '' && $id !== null);
         if (empty($ids)) {
             return;
         }
@@ -388,7 +408,7 @@ class MemoryManager
         \Swoole\Coroutine::create(function () use ($ids) {
             try {
                 $this->store->touchMemoriesSurfaced($ids);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->debug("Memory: failed to record surfacing: {$e->getMessage()}");
             }
         });
@@ -417,10 +437,14 @@ class MemoryManager
         // Vector search results
         try {
             $vectorResults = $this->embeddingService->semanticSearch(
-                $currentPrompt, $userId, $projectId, 20,
+                $currentPrompt,
+                $userId,
+                $projectId,
+                20,
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->debug("Memory: vector search failed, using keyword-only: {$e->getMessage()}");
+
             return $keywordResults;
         }
 
@@ -440,7 +464,9 @@ class MemoryManager
         $promptWords = $this->extractWords($currentPrompt);
         foreach ($memories as $entry) {
             $id = $entry['id'] ?? '';
-            if ($id === '') continue;
+            if ($id === '') {
+                continue;
+            }
             $content = $entry['content'] ?? '';
             $category = $entry['category'] ?? '';
             $contentWords = $this->extractWords($content . ' ' . $category);
@@ -526,7 +552,7 @@ class MemoryManager
         }
 
         // Sort by score descending
-        usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+        usort($scored, fn ($a, $b) => $b['score'] <=> $a['score']);
 
         $result = [];
         foreach (array_slice($scored, 0, self::MAX_RELEVANT_MEMORIES) as $item) {

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Chat;
 
+/**
+ * Defines tool schemas for the Anthropic Messages API including task creation and project management.
+ */
 class ToolDefinitions
 {
     /**

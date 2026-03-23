@@ -12,13 +12,21 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for SessionManager.
+ *
+ * Covers: session creation with UUID and store/cache persistence, retrieval,
+ * updating (with and without task ID), closing, archiving, and listing sessions.
+ */
 class SessionManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private SessionManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private SwooleTableCache|Mockery\MockInterface $cache;
 
     protected function setUp(): void
@@ -40,7 +48,7 @@ class SessionManagerTest extends TestCase
 
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $sessionId
+            $sessionId,
         );
     }
 

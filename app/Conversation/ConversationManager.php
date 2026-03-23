@@ -9,6 +9,9 @@ use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
+/**
+ * Manages multi-turn conversation lifecycle including creation, turn tracking, and completion.
+ */
 class ConversationManager
 {
     #[Inject]

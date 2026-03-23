@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Pipeline;
 
+/**
+ * Shared context object passed through all post-task pipeline stages.
+ *
+ * Carries the completed task data, user identity, conversation metadata, and a
+ * mutable bag for stages to communicate downstream state.
+ */
 class PipelineContext
 {
     /**
@@ -18,5 +24,6 @@ class PipelineContext
         public readonly array $templateConfig = [],
         public readonly string $conversationId = '',
         public readonly string $conversationType = '',
-    ) {}
+    ) {
+    }
 }

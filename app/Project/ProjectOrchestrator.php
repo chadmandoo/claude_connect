@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace App\Project;
 
-use App\StateMachine\TaskManager;
 use App\Claude\ProcessManager;
-use Hyperf\Di\Annotation\Inject;
+use App\StateMachine\TaskManager;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Background loop that drives multi-step project execution through planning, step
+ * dispatch, completion handling, failure recovery, and periodic plan re-evaluation.
+ *
+ * Enforces safety limits (budget caps, iteration limits) and user checkpoints,
+ * automatically retrying failed steps once before stalling the project.
+ */
 class ProjectOrchestrator
 {
     #[Inject]
@@ -39,7 +47,7 @@ class ProjectOrchestrator
         while ($this->running) {
             try {
                 $this->tick();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("ProjectOrchestrator tick error: {$e->getMessage()}");
             }
 
@@ -52,6 +60,18 @@ class ProjectOrchestrator
         $this->running = false;
     }
 
+    // --- Pause/Resume for user replies ---
+
+    public function pauseForReply(string $projectId): void
+    {
+        $this->projectManager->updateField($projectId, 'waiting_for_reply', '1');
+    }
+
+    public function resumeFromReply(string $projectId): void
+    {
+        $this->projectManager->updateField($projectId, 'waiting_for_reply', '0');
+    }
+
     private function tick(): void
     {
         $projectId = $this->projectManager->getActiveProjectId();
@@ -62,6 +82,7 @@ class ProjectOrchestrator
         $project = $this->projectManager->getProject($projectId);
         if (!$project) {
             $this->projectManager->clearActiveProject();
+
             return;
         }
 
@@ -70,6 +91,7 @@ class ProjectOrchestrator
         // Handle PLANNING state — generate a plan
         if ($state === ProjectState::PLANNING) {
             $this->generatePlan($projectId, $project);
+
             return;
         }
 
@@ -90,6 +112,7 @@ class ProjectOrchestrator
             if (!$task) {
                 // Task lost — treat as failure
                 $this->handleStepFailure($projectId, $project, 'Task disappeared');
+
                 return;
             }
 
@@ -97,12 +120,14 @@ class ProjectOrchestrator
 
             if ($taskState === 'completed') {
                 $this->handleStepCompletion($projectId, $project, $task);
+
                 return;
             }
 
             if ($taskState === 'failed') {
                 $error = $task['error'] ?? 'Unknown error';
                 $this->handleStepFailure($projectId, $project, $error);
+
                 return;
             }
 
@@ -115,6 +140,7 @@ class ProjectOrchestrator
         if ($safetyReason !== null) {
             $this->logger->info("Project {$projectId} hit safety limit: {$safetyReason}");
             $this->projectManager->transition($projectId, ProjectState::PAUSED, $safetyReason);
+
             // Safety limit reached
             return;
         }
@@ -122,6 +148,7 @@ class ProjectOrchestrator
         // Check if we need a user checkpoint
         if ($this->needsCheckpoint($project)) {
             $this->projectManager->transition($projectId, ProjectState::PAUSED, 'Scheduled checkpoint');
+
             // Scheduled checkpoint
             return;
         }
@@ -131,6 +158,7 @@ class ProjectOrchestrator
         $totalSteps = (int) ($project['total_steps'] ?? 0);
         if ($completedSteps >= $totalSteps && $totalSteps > 0) {
             $this->projectManager->transition($projectId, ProjectState::COMPLETED);
+
             // Project completed
             return;
         }
@@ -151,6 +179,7 @@ class ProjectOrchestrator
 
             if ($task && ($task['state'] ?? '') === 'completed') {
                 $this->parsePlanResult($projectId, $project, $task['result'] ?? '');
+
                 return;
             }
 
@@ -159,6 +188,7 @@ class ProjectOrchestrator
                 $this->logger->warning("Plan generation failed for project {$projectId}, using single-step fallback");
                 $this->projectManager->updatePlan($projectId, [$project['goal']]);
                 $this->projectManager->transition($projectId, ProjectState::ACTIVE);
+
                 // Plan generated (single-step fallback)
                 return;
             }
@@ -166,15 +196,15 @@ class ProjectOrchestrator
 
         $goal = $project['goal'] ?? '';
         $prompt = <<<PROMPT
-Break this goal into a step-by-step plan of 3-10 concrete steps. Each step should be independently executable by a coding assistant with full filesystem access.
+            Break this goal into a step-by-step plan of 3-10 concrete steps. Each step should be independently executable by a coding assistant with full filesystem access.
 
-Goal: {$goal}
+            Goal: {$goal}
 
-Respond ONLY with a JSON array of step descriptions. Each step should be a clear, actionable instruction.
+            Respond ONLY with a JSON array of step descriptions. Each step should be a clear, actionable instruction.
 
-Example:
-["Create the project directory structure and initialize package.json", "Implement the main server file with Express routes", "Add input validation and error handling", "Write unit tests", "Create a README with usage instructions"]
-PROMPT;
+            Example:
+            ["Create the project directory structure and initialize package.json", "Implement the main server file with Express routes", "Add input validation and error handling", "Write unit tests", "Create a README with usage instructions"]
+            PROMPT;
 
         $taskId = $this->taskManager->createTask($prompt, null, [
             'source' => 'extraction',
@@ -219,7 +249,7 @@ PROMPT;
 
         // Plan generated
 
-        $this->logger->info("Project {$projectId}: plan generated with " . count($plan) . " steps");
+        $this->logger->info("Project {$projectId}: plan generated with " . count($plan) . ' steps');
     }
 
     private function executeNextStep(string $projectId, array $project): void
@@ -230,6 +260,7 @@ PROMPT;
         if ($currentStep >= count($plan)) {
             // All steps done
             $this->projectManager->transition($projectId, ProjectState::COMPLETED);
+
             // Project completed
             return;
         }
@@ -243,19 +274,19 @@ PROMPT;
         $planDisplay = $this->buildPlanDisplay($plan, $currentStep);
 
         $prompt = <<<PROMPT
-## Project Goal
-{$goal}
+            ## Project Goal
+            {$goal}
 
-## Full Plan
-{$planDisplay}
+            ## Full Plan
+            {$planDisplay}
 
-{$completedSummaries}
+            {$completedSummaries}
 
-## Current Step ({$this->stepLabel($currentStep, count($plan))})
-{$stepInstruction}
+            ## Current Step ({$this->stepLabel($currentStep, count($plan))})
+            {$stepInstruction}
 
-Execute this step now. Build on any work from previous steps (check the filesystem for existing files). Focus ONLY on this step. End with a clear summary of what you accomplished.
-PROMPT;
+            Execute this step now. Build on any work from previous steps (check the filesystem for existing files). Focus ONLY on this step. End with a clear summary of what you accomplished.
+            PROMPT;
 
         $options = [
             'source' => 'web',
@@ -325,6 +356,7 @@ PROMPT;
             // First failure — retry once
             $this->logger->info("Project {$projectId}: step failed, retrying (attempt {$retryCount})");
             $this->projectManager->setCurrentTaskId($projectId, '');
+
             // Next tick will re-execute the same step
             return;
         }
@@ -353,17 +385,17 @@ PROMPT;
         $remainingJson = json_encode($remainingSteps, JSON_PRETTY_PRINT);
 
         $prompt = <<<PROMPT
-You are re-evaluating a project plan mid-execution.
+            You are re-evaluating a project plan mid-execution.
 
-Goal: {$goal}
+            Goal: {$goal}
 
-{$completedSummaries}
+            {$completedSummaries}
 
-Remaining steps:
-{$remainingJson}
+            Remaining steps:
+            {$remainingJson}
 
-Based on what has been completed, should the remaining steps be revised? Respond ONLY with a JSON array of the revised remaining steps. If no changes are needed, return the same steps.
-PROMPT;
+            Based on what has been completed, should the remaining steps be revised? Respond ONLY with a JSON array of the revised remaining steps. If no changes are needed, return the same steps.
+            PROMPT;
 
         $taskId = $this->taskManager->createTask($prompt, null, [
             'source' => 'extraction',
@@ -395,7 +427,7 @@ PROMPT;
                             $completedPlan = array_slice($plan, 0, $currentStep);
                             $newPlan = array_merge($completedPlan, $revisedRemaining);
                             $this->projectManager->updatePlan($projectId, $newPlan);
-                            $this->logger->info("Project {$projectId}: plan re-evaluated, " . count($revisedRemaining) . " remaining steps");
+                            $this->logger->info("Project {$projectId}: plan re-evaluated, " . count($revisedRemaining) . ' remaining steps');
                         }
                     }
                     break;
@@ -435,18 +467,6 @@ PROMPT;
         return $completedSteps > 0 && $completedSteps % $checkpointInterval === 0;
     }
 
-    // --- Pause/Resume for user replies ---
-
-    public function pauseForReply(string $projectId): void
-    {
-        $this->projectManager->updateField($projectId, 'waiting_for_reply', '1');
-    }
-
-    public function resumeFromReply(string $projectId): void
-    {
-        $this->projectManager->updateField($projectId, 'waiting_for_reply', '0');
-    }
-
     // --- Helpers ---
 
     private function getCompletedSummaries(string $projectId, array $plan): string
@@ -456,7 +476,7 @@ PROMPT;
             return '';
         }
 
-        $lines = ["## Completed Steps"];
+        $lines = ['## Completed Steps'];
         foreach ($results as $r) {
             $stepNum = (int) ($r['step'] ?? 0) + 1;
             $instruction = $r['instruction'] ?? ($plan[$r['step'] ?? 0] ?? '');
@@ -482,6 +502,7 @@ PROMPT;
                 $lines[] = "{$num}. [TODO] {$step}";
             }
         }
+
         return implode("\n", $lines);
     }
 

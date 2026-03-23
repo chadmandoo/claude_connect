@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Helpers;
 
+use ReflectionMethod;
+use ReflectionProperty;
+
 trait ReflectionHelper
 {
     /**
@@ -11,7 +14,7 @@ trait ReflectionHelper
      */
     protected function setProperty(object $object, string $property, mixed $value): void
     {
-        $reflection = new \ReflectionProperty($object, $property);
+        $reflection = new ReflectionProperty($object, $property);
         $reflection->setAccessible(true);
         $reflection->setValue($object, $value);
     }
@@ -21,8 +24,9 @@ trait ReflectionHelper
      */
     protected function getProperty(object $object, string $property): mixed
     {
-        $reflection = new \ReflectionProperty($object, $property);
+        $reflection = new ReflectionProperty($object, $property);
         $reflection->setAccessible(true);
+
         return $reflection->getValue($object);
     }
 
@@ -31,8 +35,9 @@ trait ReflectionHelper
      */
     protected function callMethod(object $object, string $method, array $args = []): mixed
     {
-        $reflection = new \ReflectionMethod($object, $method);
+        $reflection = new ReflectionMethod($object, $method);
         $reflection->setAccessible(true);
+
         return $reflection->invokeArgs($object, $args);
     }
 }

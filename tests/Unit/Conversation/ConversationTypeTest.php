@@ -6,7 +6,14 @@ namespace Tests\Unit\Conversation;
 
 use App\Conversation\ConversationType;
 use PHPUnit\Framework\TestCase;
+use ValueError;
 
+/**
+ * Tests for ConversationType enum.
+ *
+ * Covers: string values for all cases (brainstorm, planning, task, discussion, check_in),
+ * total case count, from() construction, and invalid value rejection.
+ */
 class ConversationTypeTest extends TestCase
 {
     public function testBrainstormValue(): void
@@ -50,7 +57,7 @@ class ConversationTypeTest extends TestCase
 
     public function testFromInvalidStringThrows(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         ConversationType::from('invalid');
     }
 }

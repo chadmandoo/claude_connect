@@ -6,11 +6,21 @@ namespace App\Storage;
 
 use Swoole\Table;
 
+/**
+ * In-memory cache using Swoole Tables for cross-worker shared state.
+ *
+ * Maintains fast-access tables for active tasks, sessions, WebSocket connections,
+ * and active conversations. Tables are created before worker forking and shared
+ * across all Swoole workers via shared memory.
+ */
 class SwooleTableCache
 {
     private Table $activeTasks;
+
     private Table $activeSessions;
+
     private Table $wsConnections;
+
     private Table $activeConversations;
 
     public function __construct()
@@ -60,6 +70,7 @@ class SwooleTableCache
     public function getActiveTask(string $taskId): ?array
     {
         $row = $this->activeTasks->get($taskId);
+
         return $row ?: null;
     }
 
@@ -92,6 +103,7 @@ class SwooleTableCache
         foreach ($this->activeTasks as $key => $row) {
             $tasks[$key] = $row;
         }
+
         return $tasks;
     }
 
@@ -109,6 +121,7 @@ class SwooleTableCache
     public function getActiveSession(string $sessionId): ?array
     {
         $row = $this->activeSessions->get($sessionId);
+
         return $row ?: null;
     }
 
@@ -135,6 +148,7 @@ class SwooleTableCache
         foreach ($this->activeSessions as $key => $row) {
             $sessions[$key] = $row;
         }
+
         return $sessions;
     }
 
@@ -157,6 +171,7 @@ class SwooleTableCache
     public function getWsConnection(int $fd): ?array
     {
         $row = $this->wsConnections->get((string) $fd);
+
         return $row ?: null;
     }
 
@@ -184,6 +199,7 @@ class SwooleTableCache
         foreach ($this->wsConnections as $key => $row) {
             $connections[(int) $key] = $row;
         }
+
         return $connections;
     }
 
@@ -203,6 +219,7 @@ class SwooleTableCache
     public function getActiveConversation(string $conversationId): ?array
     {
         $row = $this->activeConversations->get($conversationId);
+
         return $row ?: null;
     }
 

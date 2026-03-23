@@ -6,7 +6,14 @@ namespace Tests\Unit\Pipeline;
 
 use App\Pipeline\PipelineContext;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
+/**
+ * Tests for PipelineContext.
+ *
+ * Covers: construction with default and explicit parameters, writable bag property
+ * for inter-stage data passing, and readonly enforcement on task and userId.
+ */
 class PipelineContextTest extends TestCase
 {
     public function testConstructionWithDefaults(): void
@@ -60,10 +67,10 @@ class PipelineContextTest extends TestCase
     {
         $context = new PipelineContext(['id' => 'task-4'], 'user-5');
 
-        $reflection = new \ReflectionProperty(PipelineContext::class, 'task');
+        $reflection = new ReflectionProperty(PipelineContext::class, 'task');
         $this->assertTrue($reflection->isReadOnly());
 
-        $reflection = new \ReflectionProperty(PipelineContext::class, 'userId');
+        $reflection = new ReflectionProperty(PipelineContext::class, 'userId');
         $this->assertTrue($reflection->isReadOnly());
     }
 }

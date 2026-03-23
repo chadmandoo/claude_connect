@@ -6,7 +6,15 @@ namespace Tests\Unit\StateMachine;
 
 use App\StateMachine\TaskState;
 use PHPUnit\Framework\TestCase;
+use ValueError;
 
+/**
+ * Tests for TaskState enum.
+ *
+ * Covers: string values for all states (pending, running, completed, failed), from()
+ * construction, allowed transitions per state, canTransitionTo validation for every
+ * state pair, and terminal state detection.
+ */
 class TaskStateTest extends TestCase
 {
     public function testEnumValues(): void
@@ -27,7 +35,7 @@ class TaskStateTest extends TestCase
 
     public function testFromInvalidStringThrows(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         TaskState::from('invalid');
     }
 

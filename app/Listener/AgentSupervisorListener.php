@@ -10,7 +10,14 @@ use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to launch the AgentSupervisor on worker 0.
+ *
+ * Starts the agent supervision loop in a Swoole coroutine so that
+ * background agents are monitored and restarted as needed.
+ */
 #[Listener]
 class AgentSupervisorListener implements ListenerInterface
 {
@@ -36,11 +43,12 @@ class AgentSupervisorListener implements ListenerInterface
 
         \Swoole\Coroutine::create(function () {
             $logger = $this->container->get(LoggerInterface::class);
+
             try {
                 $logger->info('AgentSupervisor: starting on worker 0');
                 $supervisor = $this->container->get(AgentSupervisor::class);
                 $supervisor->start();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->error("AgentSupervisor fatal: {$e->getMessage()}");
             }
         });

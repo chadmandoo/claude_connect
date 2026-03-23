@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace App\Listener;
 
+use Hyperf\Contract\ConfigInterface;
 use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
-use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to perform startup health checks on worker 0.
+ *
+ * Validates Claude CLI availability, Redis connectivity, auth configuration,
+ * RediSearch vector index initialization, and default agent seeding.
+ */
 #[Listener]
 class StartupValidationListener implements ListenerInterface
 {
@@ -53,7 +60,7 @@ class StartupValidationListener implements ListenerInterface
             if ($result !== true && $result !== '+PONG') {
                 $logger->error('Startup: Redis ping failed');
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $logger->error("Startup: Redis connection failed: {$e->getMessage()}");
         }
 
@@ -67,7 +74,7 @@ class StartupValidationListener implements ListenerInterface
         try {
             $vectorStore = $this->container->get(\App\Embedding\VectorStore::class);
             $vectorStore->ensureIndex();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $logger->warning("Startup: VectorStore index init failed: {$e->getMessage()}");
         }
 
@@ -75,7 +82,7 @@ class StartupValidationListener implements ListenerInterface
         try {
             $agentManager = $this->container->get(\App\Agent\AgentManager::class);
             $agentManager->seedDefaultAgents();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $logger->warning("Startup: Agent seeding failed: {$e->getMessage()}");
         }
 

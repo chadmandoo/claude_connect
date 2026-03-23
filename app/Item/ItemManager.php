@@ -8,7 +8,14 @@ use App\Epic\EpicManager;
 use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
+/**
+ * Manages work item CRUD, state transitions, epic assignment, and conversation linking.
+ *
+ * Coordinates with EpicManager to auto-refresh parent epic state on item transitions
+ * and supports assignment, note tracking, and project-level item counts.
+ */
 class ItemManager
 {
     #[Inject]
@@ -78,7 +85,7 @@ class ItemManager
     {
         $item = $this->store->getItem($itemId);
         if (!$item) {
-            throw new \RuntimeException("Item {$itemId} not found");
+            throw new RuntimeException("Item {$itemId} not found");
         }
 
         $allowed = ['title', 'description', 'priority'];
@@ -92,14 +99,14 @@ class ItemManager
     {
         $item = $this->store->getItem($itemId);
         if (!$item) {
-            throw new \RuntimeException("Item {$itemId} not found");
+            throw new RuntimeException("Item {$itemId} not found");
         }
 
         $currentState = ItemState::from($item['state']);
 
         if (!$currentState->canTransitionTo($targetState)) {
-            throw new \RuntimeException(
-                "Invalid item transition from {$currentState->value} to {$targetState->value}"
+            throw new RuntimeException(
+                "Invalid item transition from {$currentState->value} to {$targetState->value}",
             );
         }
 
@@ -129,7 +136,7 @@ class ItemManager
     {
         $item = $this->store->getItem($itemId);
         if (!$item) {
-            throw new \RuntimeException("Item {$itemId} not found");
+            throw new RuntimeException("Item {$itemId} not found");
         }
 
         $oldEpicId = $item['epic_id'] ?? '';
@@ -141,13 +148,13 @@ class ItemManager
         // Verify target epic exists and belongs to the same project
         $newEpic = $this->store->getEpic($newEpicId);
         if (!$newEpic) {
-            throw new \RuntimeException("Epic {$newEpicId} not found");
+            throw new RuntimeException("Epic {$newEpicId} not found");
         }
 
         $itemProjectId = $item['project_id'] ?? '';
         $epicProjectId = $newEpic['project_id'] ?? '';
         if ($itemProjectId !== '' && $epicProjectId !== '' && $itemProjectId !== $epicProjectId) {
-            throw new \RuntimeException("Cannot move item to epic in a different project");
+            throw new RuntimeException('Cannot move item to epic in a different project');
         }
 
         // Remove from old epic
@@ -206,6 +213,7 @@ class ItemManager
             }
             $counts['total']++;
         }
+
         return $counts;
     }
 
@@ -213,7 +221,7 @@ class ItemManager
     {
         $item = $this->store->getItem($itemId);
         if (!$item) {
-            throw new \RuntimeException("Item {$itemId} not found");
+            throw new RuntimeException("Item {$itemId} not found");
         }
         $this->store->updateItem($itemId, [
             'assigned_to' => $assignee,
@@ -225,7 +233,7 @@ class ItemManager
     {
         $item = $this->store->getItem($itemId);
         if (!$item) {
-            throw new \RuntimeException("Item {$itemId} not found");
+            throw new RuntimeException("Item {$itemId} not found");
         }
         $this->store->updateItem($itemId, [
             'assigned_to' => '',
@@ -244,6 +252,7 @@ class ItemManager
                 $results[] = $item;
             }
         }
+
         return $results;
     }
 

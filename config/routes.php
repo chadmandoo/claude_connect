@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Hyperf\HttpServer\Router\Router;
 use App\Controller\HealthController;
 use App\Controller\WebController;
+use Hyperf\HttpServer\Router\Router;
 
 Router::get('/health', [HealthController::class, 'index']);
 

@@ -5,48 +5,16 @@ declare(strict_types=1);
 namespace App\Storage;
 
 use Hyperf\DbConnection\Db;
+use Throwable;
 
+/**
+ * PostgreSQL data access layer providing CRUD operations for all persistent entities.
+ *
+ * Covers tasks, projects, conversations, memories, epics, items, agents, skills,
+ * notebooks, pages, todos, schedules, and related metadata using Hyperf's DB facade.
+ */
 class PostgresStore
 {
-    // --- Helpers ---
-
-    /**
-     * Convert stdClass row to array, normalizing booleans to '0'/'1' strings
-     * and nulls to empty strings for compatibility with existing managers.
-     */
-    private function toArray(?object $row): ?array
-    {
-        if ($row === null) {
-            return null;
-        }
-        $data = (array) $row;
-        foreach ($data as $key => $value) {
-            if (is_bool($value)) {
-                $data[$key] = $value ? '1' : '0';
-            } elseif ($value === null) {
-                $data[$key] = '';
-            }
-        }
-        return $data;
-    }
-
-    private function toArrayList(iterable $rows): array
-    {
-        $result = [];
-        foreach ($rows as $row) {
-            $result[] = $this->toArray($row);
-        }
-        return $result;
-    }
-
-    /**
-     * Convert '' to null for nullable UUID FK columns on write.
-     */
-    private function nullableUuid(string $value): ?string
-    {
-        return $value !== '' ? $value : null;
-    }
-
     // =========================================================================
     // Task operations
     // =========================================================================
@@ -60,6 +28,7 @@ class PostgresStore
     public function getTask(string $taskId): ?array
     {
         $row = Db::table('tasks')->where('id', $taskId)->first();
+
         return $this->toArray($row);
     }
 
@@ -83,7 +52,7 @@ class PostgresStore
             ->orderBy('created_at')
             ->limit($limit)
             ->pluck('id')
-            ->map(fn($id) => (string) $id)
+            ->map(fn ($id) => (string) $id)
             ->all();
     }
 
@@ -93,6 +62,7 @@ class PostgresStore
         if ($state !== null) {
             $query->where('state', $state);
         }
+
         return $this->toArrayList($query->get());
     }
 
@@ -116,7 +86,7 @@ class PostgresStore
             ->orderBy('id')
             ->get();
 
-        return array_map(fn($row) => [
+        return array_map(fn ($row) => [
             'from' => $row->from_state,
             'to' => $row->to_state,
             'timestamp' => $row->created_at,
@@ -138,7 +108,7 @@ class PostgresStore
                 ->where('user_id', $userId)
                 ->orderByDesc('created_at')
                 ->limit($limit)
-                ->get()
+                ->get(),
         );
     }
 
@@ -170,6 +140,7 @@ class PostgresStore
         if (!$row) {
             return null;
         }
+
         return json_decode($row->data, true) ?: [];
     }
 
@@ -194,6 +165,7 @@ class PostgresStore
     public function listSessions(): array
     {
         $rows = Db::table('sessions')->get();
+
         return array_map(function ($row) {
             return json_decode($row->data, true) ?: [];
         }, $rows->all());
@@ -208,7 +180,7 @@ class PostgresStore
         Db::table('memory_facts')->upsert(
             ['user_id' => $userId, 'key' => $key, 'value' => $value],
             ['user_id', 'key'],
-            ['value']
+            ['value'],
         );
     }
 
@@ -218,6 +190,7 @@ class PostgresStore
             ->where('user_id', $userId)
             ->where('key', $key)
             ->first();
+
         return $row ? $row->value : null;
     }
 
@@ -228,6 +201,7 @@ class PostgresStore
         foreach ($rows as $row) {
             $result[$row->key] = $row->value;
         }
+
         return $result;
     }
 
@@ -319,7 +293,7 @@ class PostgresStore
             ->limit($limit)
             ->get();
 
-        return array_map(fn($row) => $this->mapMemoryRow($row), $rows->all());
+        return array_map(fn ($row) => $this->mapMemoryRow($row), $rows->all());
     }
 
     public function searchMemoryEntries(string $userId, string $keyword): array
@@ -332,7 +306,7 @@ class PostgresStore
             ->orderByDesc('created_at')
             ->get();
 
-        return array_map(fn($row) => $this->mapMemoryRow($row), $rows->all());
+        return array_map(fn ($row) => $this->mapMemoryRow($row), $rows->all());
     }
 
     public function deleteMemoryEntry(string $userId, string $entryId): void
@@ -374,7 +348,7 @@ class PostgresStore
             ->limit($limit)
             ->get();
 
-        return array_map(fn($row) => $this->mapMemoryRow($row), $rows->all());
+        return array_map(fn ($row) => $this->mapMemoryRow($row), $rows->all());
     }
 
     public function getAllMemoryEntryCount(string $userId): int
@@ -435,7 +409,7 @@ class PostgresStore
             ->limit($limit)
             ->get();
 
-        return array_map(fn($row) => $this->mapMemoryRow($row), $rows->all());
+        return array_map(fn ($row) => $this->mapMemoryRow($row), $rows->all());
     }
 
     public function deleteProjectMemoryEntry(string $userId, string $projectId, string $entryId): void
@@ -471,8 +445,8 @@ class PostgresStore
         }
 
         return array_map(
-            fn($row) => $this->mapMemoryRow($row),
-            $query->orderByDesc('created_at')->limit($limit)->get()->all()
+            fn ($row) => $this->mapMemoryRow($row),
+            $query->orderByDesc('created_at')->limit($limit)->get()->all(),
         );
     }
 
@@ -487,7 +461,7 @@ class PostgresStore
                 $q->where('agent_scope', '')
                   ->orWhere('agent_scope', '*')
                   ->orWhere('agent_scope', $agentId)
-                  ->orWhereRaw("agent_scope LIKE ?", ["%{$agentId}%"]);
+                  ->orWhereRaw('agent_scope LIKE ?', ["%{$agentId}%"]);
             });
 
         if ($projectId !== null) {
@@ -498,8 +472,8 @@ class PostgresStore
         }
 
         return array_map(
-            fn($row) => $this->mapMemoryRow($row),
-            $query->orderByDesc('created_at')->limit($limit)->get()->all()
+            fn ($row) => $this->mapMemoryRow($row),
+            $query->orderByDesc('created_at')->limit($limit)->get()->all(),
         );
     }
 
@@ -527,7 +501,7 @@ class PostgresStore
             ->limit($limit)
             ->get();
 
-        return array_map(fn($row) => $this->mapMemoryRow($row), $rows->all());
+        return array_map(fn ($row) => $this->mapMemoryRow($row), $rows->all());
     }
 
     /**
@@ -544,26 +518,6 @@ class PostgresStore
             ->update(['last_surfaced_at' => time()]);
     }
 
-    /**
-     * Map a database row to a memory array with all fields.
-     */
-    private function mapMemoryRow(object $row): array
-    {
-        return [
-            'id' => $row->id,
-            'category' => $row->category,
-            'content' => $row->content,
-            'importance' => $row->importance,
-            'source' => $row->source ?? '',
-            'type' => $row->type ?? 'project',
-            'agent_scope' => $row->agent_scope ?? '*',
-            'project_id' => $row->project_id,
-            'last_surfaced_at' => (int) ($row->last_surfaced_at ?? 0),
-            'updated_at' => (int) ($row->updated_at ?? 0),
-            'created_at' => (int) ($row->created_at ?? 0),
-        ];
-    }
-
     // =========================================================================
     // Skill operations
     // =========================================================================
@@ -573,7 +527,7 @@ class PostgresStore
         Db::table('skills')->upsert(
             ['scope' => $scope, 'name' => $name, 'config' => json_encode($config)],
             ['scope', 'name'],
-            ['config']
+            ['config'],
         );
     }
 
@@ -586,6 +540,7 @@ class PostgresStore
         if (!$row) {
             return null;
         }
+
         return json_decode($row->config, true);
     }
 
@@ -596,6 +551,7 @@ class PostgresStore
         foreach ($rows as $row) {
             $skills[$row->name] = json_decode($row->config, true);
         }
+
         return $skills;
     }
 
@@ -623,6 +579,7 @@ class PostgresStore
             return null;
         }
         $row = Db::table('projects')->where('id', $projectId)->first();
+
         return $this->toArray($row);
     }
 
@@ -655,8 +612,8 @@ class PostgresStore
             ->get();
 
         return array_map(
-            fn($row) => json_decode($row->step_data, true) ?: [],
-            $rows->all()
+            fn ($row) => json_decode($row->step_data, true) ?: [],
+            $rows->all(),
         );
     }
 
@@ -678,12 +635,12 @@ class PostgresStore
             ->orderBy('id')
             ->get();
 
-        return array_map(fn($row) => array_filter([
+        return array_map(fn ($row) => array_filter([
             'from' => $row->from_state,
             'to' => $row->to_state,
             'timestamp' => $row->created_at,
             'reason' => $row->reason,
-        ], fn($v) => $v !== null), $rows->all());
+        ], fn ($v) => $v !== null), $rows->all());
     }
 
     public function listProjects(?string $state = null, int $limit = 20): array
@@ -692,6 +649,7 @@ class PostgresStore
         if ($state !== null) {
             $query->where('state', $state);
         }
+
         return $this->toArrayList($query->get());
     }
 
@@ -700,7 +658,7 @@ class PostgresStore
         Db::table('project_names')->upsert(
             ['name_lower' => mb_strtolower($name), 'project_id' => $projectId],
             ['name_lower'],
-            ['project_id']
+            ['project_id'],
         );
     }
 
@@ -709,6 +667,7 @@ class PostgresStore
         $row = Db::table('project_names')
             ->where('name_lower', mb_strtolower($name))
             ->first();
+
         return $row ? (string) $row->project_id : null;
     }
 
@@ -723,7 +682,7 @@ class PostgresStore
             Db::table('projects')
                 ->where('state', 'workspace')
                 ->orderByDesc('created_at')
-                ->get()
+                ->get(),
         );
     }
 
@@ -752,6 +711,7 @@ class PostgresStore
                 'agents.icon as agent_icon',
             ])
             ->first();
+
         return $this->toArray($row);
     }
 
@@ -779,7 +739,7 @@ class PostgresStore
             ->orderBy('id')
             ->get();
 
-        return array_map(fn($row) => [
+        return array_map(fn ($row) => [
             'role' => $row->role,
             'content' => $row->content,
             'task_id' => $row->task_id,
@@ -828,7 +788,7 @@ class PostgresStore
             ->orderBy('created_at')
             ->limit($limit)
             ->pluck('id')
-            ->map(fn($id) => (string) $id)
+            ->map(fn ($id) => (string) $id)
             ->all();
     }
 
@@ -860,6 +820,7 @@ class PostgresStore
     public function getEpic(string $epicId): ?array
     {
         $row = Db::table('epics')->where('id', $epicId)->first();
+
         return $this->toArray($row);
     }
 
@@ -889,7 +850,7 @@ class PostgresStore
             Db::table('epics')
                 ->where('project_id', $projectId)
                 ->orderBy('sort_order')
-                ->get()
+                ->get(),
         );
     }
 
@@ -906,6 +867,7 @@ class PostgresStore
         if ($existing && (string) $existing->id !== $epicId) {
             return false;
         }
+
         return true;
     }
 
@@ -915,6 +877,7 @@ class PostgresStore
             ->where('project_id', $projectId)
             ->where('is_backlog', true)
             ->first();
+
         return $row ? (string) $row->id : null;
     }
 
@@ -932,8 +895,9 @@ class PostgresStore
         $row = Db::table('items')->where('id', $itemId)->first();
         $data = $this->toArray($row);
         if ($data !== null) {
-            $data['epic_id'] = $data['epic_id'] ?? '';
+            $data['epic_id'] ??= '';
         }
+
         return $data;
     }
 
@@ -972,7 +936,7 @@ class PostgresStore
             Db::table('items')
                 ->where('epic_id', $epicId)
                 ->orderBy('sort_order')
-                ->get()
+                ->get(),
         );
     }
 
@@ -989,6 +953,7 @@ class PostgresStore
         if ($state !== null) {
             $query->where('state', $state);
         }
+
         return $this->toArrayList($query->get());
     }
 
@@ -1003,7 +968,7 @@ class PostgresStore
             ->orderByDesc('created_at')
             ->limit($limit)
             ->pluck('id')
-            ->map(fn($id) => (string) $id)
+            ->map(fn ($id) => (string) $id)
             ->all();
     }
 
@@ -1023,7 +988,7 @@ class PostgresStore
         return Db::table('item_conversations')
             ->where('item_id', $itemId)
             ->pluck('conversation_id')
-            ->map(fn($id) => (string) $id)
+            ->map(fn ($id) => (string) $id)
             ->all();
     }
 
@@ -1032,7 +997,7 @@ class PostgresStore
         return Db::table('item_conversations')
             ->where('conversation_id', $conversationId)
             ->pluck('item_id')
-            ->map(fn($id) => (string) $id)
+            ->map(fn ($id) => (string) $id)
             ->all();
     }
 
@@ -1056,7 +1021,7 @@ class PostgresStore
             ->limit($limit)
             ->get();
 
-        return array_map(fn($row) => [
+        return array_map(fn ($row) => [
             'content' => $row->content,
             'author' => $row->author,
             'timestamp' => $row->created_at,
@@ -1101,8 +1066,8 @@ class PostgresStore
             ->get();
 
         return array_map(
-            fn($row) => json_decode($row->stats, true) ?: [],
-            $rows->all()
+            fn ($row) => json_decode($row->stats, true) ?: [],
+            $rows->all(),
         );
     }
 
@@ -1130,12 +1095,14 @@ class PostgresStore
     public function getScheduledJob(string $id): ?array
     {
         $row = Db::table('scheduled_jobs')->where('id', $id)->first();
+
         return $this->toArray($row);
     }
 
     public function getScheduledJobs(): array
     {
         $rows = Db::table('scheduled_jobs')->orderBy('name')->get();
+
         return $this->toArrayList($rows);
     }
 
@@ -1168,16 +1135,19 @@ class PostgresStore
         $data = (array) $row;
         $data['member_count'] = (int) ($data['member_count'] ?? 0);
         $data['created_at'] = (int) ($data['created_at'] ?? 0);
+
         return $data;
     }
 
     public function getChannels(): array
     {
         $rows = Db::table('channels')->orderByDesc('created_at')->limit(100)->get();
+
         return array_map(function ($row) {
             $data = (array) $row;
             $data['member_count'] = (int) ($data['member_count'] ?? 0);
             $data['created_at'] = (int) ($data['created_at'] ?? 0);
+
             return $data;
         }, $rows->all());
     }
@@ -1241,6 +1211,7 @@ class PostgresStore
             if (!empty($row->agent_id)) {
                 $msg['agent_id'] = $row->agent_id;
             }
+
             return $msg;
         }, $rows->all());
     }
@@ -1257,9 +1228,10 @@ class PostgresStore
     public function markNotified(string $taskId): bool
     {
         $affected = Db::update(
-            "UPDATE tasks SET notified_at = ? WHERE id = ? AND notified_at = 0",
-            [time(), $taskId]
+            'UPDATE tasks SET notified_at = ? WHERE id = ? AND notified_at = 0',
+            [time(), $taskId],
         );
+
         return $affected > 0;
     }
 
@@ -1275,18 +1247,21 @@ class PostgresStore
     public function getAgent(string $id): ?array
     {
         $row = Db::table('agents')->where('id', $id)->first();
+
         return $this->toArray($row);
     }
 
     public function getAgentBySlug(string $slug): ?array
     {
         $row = Db::table('agents')->where('slug', $slug)->first();
+
         return $this->toArray($row);
     }
 
     public function getDefaultAgent(): ?array
     {
         $row = Db::table('agents')->where('is_default', true)->first();
+
         return $this->toArray($row);
     }
 
@@ -1299,6 +1274,7 @@ class PostgresStore
                   ->orWhere('project_id', $projectId);
             });
         }
+
         return $this->toArrayList($query->get());
     }
 
@@ -1355,6 +1331,7 @@ class PostgresStore
             ->select('agents.*', 'room_agents.is_active_default', 'room_agents.added_at')
             ->orderBy('room_agents.added_at')
             ->get();
+
         return $this->toArrayList($rows);
     }
 
@@ -1380,6 +1357,7 @@ class PostgresStore
             ->where('room_agents.is_active_default', true)
             ->select('agents.*')
             ->first();
+
         return $this->toArray($row);
     }
 
@@ -1391,8 +1369,9 @@ class PostgresStore
     {
         try {
             Db::select('SELECT 1');
+
             return true;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
@@ -1409,6 +1388,7 @@ class PostgresStore
     public function getNotebook(string $notebookId): ?array
     {
         $row = Db::table('notebooks')->where('id', $notebookId)->first();
+
         return $this->toArray($row);
     }
 
@@ -1428,7 +1408,7 @@ class PostgresStore
         return $this->toArrayList(
             Db::table('notebooks')
                 ->orderBy('sort_order')
-                ->get()
+                ->get(),
         );
     }
 
@@ -1446,8 +1426,9 @@ class PostgresStore
         $row = Db::table('pages')->where('id', $pageId)->first();
         $data = $this->toArray($row);
         if ($data !== null) {
-            $data['notebook_id'] = $data['notebook_id'] ?? '';
+            $data['notebook_id'] ??= '';
         }
+
         return $data;
     }
 
@@ -1467,7 +1448,7 @@ class PostgresStore
             Db::table('pages')
                 ->where('notebook_id', $notebookId)
                 ->orderByRaw('pinned DESC, sort_order ASC')
-                ->get()
+                ->get(),
         );
     }
 
@@ -1483,6 +1464,7 @@ class PostgresStore
     public function getTodoSection(string $sectionId): ?array
     {
         $row = Db::table('todo_sections')->where('id', $sectionId)->first();
+
         return $this->toArray($row);
     }
 
@@ -1504,7 +1486,7 @@ class PostgresStore
         return $this->toArrayList(
             Db::table('todo_sections')
                 ->orderBy('sort_order')
-                ->get()
+                ->get(),
         );
     }
 
@@ -1520,6 +1502,7 @@ class PostgresStore
     public function getTodoItem(string $itemId): ?array
     {
         $row = Db::table('todo_items')->where('id', $itemId)->first();
+
         return $this->toArray($row);
     }
 
@@ -1542,7 +1525,67 @@ class PostgresStore
             Db::table('todo_items')
                 ->where('section_id', $sectionId)
                 ->orderBy('sort_order')
-                ->get()
+                ->get(),
         );
+    }
+    // --- Helpers ---
+
+    /**
+     * Convert stdClass row to array, normalizing booleans to '0'/'1' strings
+     * and nulls to empty strings for compatibility with existing managers.
+     */
+    private function toArray(?object $row): ?array
+    {
+        if ($row === null) {
+            return null;
+        }
+        $data = (array) $row;
+        foreach ($data as $key => $value) {
+            if (is_bool($value)) {
+                $data[$key] = $value ? '1' : '0';
+            } elseif ($value === null) {
+                $data[$key] = '';
+            }
+        }
+
+        return $data;
+    }
+
+    private function toArrayList(iterable $rows): array
+    {
+        $result = [];
+        foreach ($rows as $row) {
+            $result[] = $this->toArray($row);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Convert '' to null for nullable UUID FK columns on write.
+     */
+    private function nullableUuid(string $value): ?string
+    {
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * Map a database row to a memory array with all fields.
+     */
+    private function mapMemoryRow(object $row): array
+    {
+        return [
+            'id' => $row->id,
+            'category' => $row->category,
+            'content' => $row->content,
+            'importance' => $row->importance,
+            'source' => $row->source ?? '',
+            'type' => $row->type ?? 'project',
+            'agent_scope' => $row->agent_scope ?? '*',
+            'project_id' => $row->project_id,
+            'last_surfaced_at' => (int) ($row->last_surfaced_at ?? 0),
+            'updated_at' => (int) ($row->updated_at ?? 0),
+            'created_at' => (int) ($row->created_at ?? 0),
+        ];
     }
 }

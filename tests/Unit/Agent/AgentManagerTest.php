@@ -5,22 +5,32 @@ declare(strict_types=1);
 namespace Tests\Unit\Agent;
 
 use App\Agent\AgentManager;
-use App\Storage\PostgresStore;
 use App\Prompts\PromptLoader;
+use App\Storage\PostgresStore;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for AgentManager.
+ *
+ * Covers: agent creation with UUID generation, retrieval by ID and slug,
+ * listing agents, deleting custom agents, and preventing deletion of system agents.
+ */
 class AgentManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private AgentManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private PromptLoader|Mockery\MockInterface $promptLoader;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void
@@ -55,7 +65,7 @@ class AgentManagerTest extends TestCase
 
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $id
+            $id,
         );
     }
 
@@ -166,7 +176,7 @@ class AgentManagerTest extends TestCase
             ->with('agent-sys')
             ->andReturn($agentData);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cannot delete system agent');
 
         $this->manager->deleteAgent('agent-sys');

@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace App\Web;
 
 use App\Storage\RedisStore;
-use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 
+/**
+ * Handles password-based authentication and token management for the web frontend.
+ *
+ * Issues random 32-character hex tokens stored in Redis with a 24-hour TTL,
+ * and provides validation and revocation for session management.
+ */
 class WebAuthManager
 {
     private const TOKEN_TTL = 86400; // 24 hours
@@ -36,6 +42,7 @@ class WebAuthManager
         if ($token === '') {
             return false;
         }
+
         return $this->redis->hasWebToken($token);
     }
 

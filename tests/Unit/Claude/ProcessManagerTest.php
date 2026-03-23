@@ -12,17 +12,29 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for ProcessManager.
+ *
+ * Covers: CLI command building (model, session resume, MCP config, max turns, budget),
+ * environment variable construction (PATH, HOME, HTTP exclusions), and
+ * continueTask flows (success, missing parent, missing session ID, custom options).
+ */
 class ProcessManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private ProcessManager $manager;
+
     private TaskManager|Mockery\MockInterface $taskManager;
+
     private OutputParser|Mockery\MockInterface $outputParser;
+
     private ConfigInterface|Mockery\MockInterface $config;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void
@@ -38,22 +50,6 @@ class ProcessManagerTest extends TestCase
         $this->setProperty($this->manager, 'outputParser', $this->outputParser);
         $this->setProperty($this->manager, 'config', $this->config);
         $this->setProperty($this->manager, 'logger', $this->logger);
-    }
-
-    private function setupDefaultConfig(): void
-    {
-        $this->config->shouldReceive('get')
-            ->with('mcp.claude.cli_path', Mockery::any())
-            ->andReturn('/usr/bin/claude');
-        $this->config->shouldReceive('get')
-            ->with('mcp.claude.max_turns', Mockery::any())
-            ->andReturn(25);
-        $this->config->shouldReceive('get')
-            ->with('mcp.claude.max_budget_usd', Mockery::any())
-            ->andReturn(5.00);
-        $this->config->shouldReceive('get')
-            ->with('mcp.claude.default_model', Mockery::any())
-            ->andReturn('');
     }
 
     // buildCommand tests via reflection
@@ -93,7 +89,7 @@ class ProcessManagerTest extends TestCase
 
         $cmd = $this->callMethod($this->manager, 'buildCommand', [$task]);
 
-        $idx = array_search('--model', $cmd);
+        $idx = array_search('--model', $cmd, true);
         $this->assertNotFalse($idx);
         $this->assertSame('claude-sonnet', $cmd[$idx + 1]);
     }
@@ -110,7 +106,7 @@ class ProcessManagerTest extends TestCase
 
         $cmd = $this->callMethod($this->manager, 'buildCommand', [$task]);
 
-        $idx = array_search('--resume', $cmd);
+        $idx = array_search('--resume', $cmd, true);
         $this->assertNotFalse($idx);
         $this->assertSame('sess-abc-123', $cmd[$idx + 1]);
     }
@@ -142,7 +138,7 @@ class ProcessManagerTest extends TestCase
 
         $cmd = $this->callMethod($this->manager, 'buildCommand', [$task]);
 
-        $idx = array_search('--mcp-config', $cmd);
+        $idx = array_search('--mcp-config', $cmd, true);
         $this->assertNotFalse($idx);
         $this->assertSame('/path/to/config.json', $cmd[$idx + 1]);
     }
@@ -159,7 +155,7 @@ class ProcessManagerTest extends TestCase
 
         $cmd = $this->callMethod($this->manager, 'buildCommand', [$task]);
 
-        $idx = array_search('--max-turns', $cmd);
+        $idx = array_search('--max-turns', $cmd, true);
         $this->assertSame('10', $cmd[$idx + 1]);
     }
 
@@ -212,7 +208,7 @@ class ProcessManagerTest extends TestCase
 
         $cmd = $this->callMethod($this->manager, 'buildCommand', [$task]);
 
-        $idx = array_search('--model', $cmd);
+        $idx = array_search('--model', $cmd, true);
         $this->assertNotFalse($idx);
         $this->assertSame('claude-opus-4-6', $cmd[$idx + 1]);
     }
@@ -229,10 +225,10 @@ class ProcessManagerTest extends TestCase
 
         $cmd = $this->callMethod($this->manager, 'buildCommand', [$task]);
 
-        $modelIdx = array_search('--model', $cmd);
+        $modelIdx = array_search('--model', $cmd, true);
         $this->assertSame('custom-model', $cmd[$modelIdx + 1]);
 
-        $turnsIdx = array_search('--max-turns', $cmd);
+        $turnsIdx = array_search('--max-turns', $cmd, true);
         $this->assertSame('5', $cmd[$turnsIdx + 1]);
     }
 
@@ -348,7 +344,7 @@ class ProcessManagerTest extends TestCase
             ->with('missing-parent')
             ->andReturn(null);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Parent task missing-parent not found');
 
         $this->manager->continueTask('missing-parent', 'follow up');
@@ -363,7 +359,7 @@ class ProcessManagerTest extends TestCase
                 'claude_session_id' => '',
             ]);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('has no claude_session_id');
 
         $this->manager->continueTask('parent-1', 'follow up');
@@ -392,5 +388,21 @@ class ProcessManagerTest extends TestCase
         $newTaskId = $this->manager->continueTask('parent-1', 'follow up', ['max_turns' => 10]);
 
         $this->assertSame('new-task-2', $newTaskId);
+    }
+
+    private function setupDefaultConfig(): void
+    {
+        $this->config->shouldReceive('get')
+            ->with('mcp.claude.cli_path', Mockery::any())
+            ->andReturn('/usr/bin/claude');
+        $this->config->shouldReceive('get')
+            ->with('mcp.claude.max_turns', Mockery::any())
+            ->andReturn(25);
+        $this->config->shouldReceive('get')
+            ->with('mcp.claude.max_budget_usd', Mockery::any())
+            ->andReturn(5.00);
+        $this->config->shouldReceive('get')
+            ->with('mcp.claude.default_model', Mockery::any())
+            ->andReturn('');
     }
 }

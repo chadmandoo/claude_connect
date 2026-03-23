@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace App\Prompts;
 
-use Psr\Log\LoggerInterface;
 use Hyperf\Di\Annotation\Inject;
+use Psr\Log\LoggerInterface;
 
+/**
+ * Loads prompt templates from the filesystem with custom override support.
+ *
+ * Checks the gitignored custom prompts directory first, then falls back to the
+ * default prompts directory. Supports type-specific extraction prompts and
+ * combined system prompt building.
+ */
 class PromptLoader
 {
     #[Inject]
@@ -29,6 +36,7 @@ class PromptLoader
         $customPath = $this->promptDir . '/custom/' . $name . '.md';
         if (file_exists($customPath)) {
             $content = file_get_contents($customPath);
+
             return $content !== false ? trim($content) : '';
         }
 
@@ -36,12 +44,14 @@ class PromptLoader
 
         if (!file_exists($path)) {
             $this->logger->warning("Prompt file not found: {$path}");
+
             return '';
         }
 
         $content = file_get_contents($path);
         if ($content === false) {
             $this->logger->error("Failed to read prompt file: {$path}");
+
             return '';
         }
 
@@ -58,6 +68,7 @@ class PromptLoader
         if ($prompt !== '') {
             return $prompt;
         }
+
         // Fallback: generic extraction prompt
         return $this->load('extraction/task');
     }

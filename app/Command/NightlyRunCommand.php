@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Nightly\NightlyConsolidationAgent;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * CLI command `nightly:run` to trigger the nightly memory consolidation agent,
+ * which validates, deduplicates, and summarizes stored memories.
+ */
 #[Command]
 class NightlyRunCommand extends HyperfCommand
 {
@@ -21,15 +25,6 @@ class NightlyRunCommand extends HyperfCommand
         private ContainerInterface $container,
     ) {
         parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addOption('dry-run', null, InputOption::VALUE_NONE, 'Preview what would be done without making changes');
-        $this->addOption('skip-validation', null, InputOption::VALUE_NONE, 'Skip the project expert validation phase');
-        $this->addOption('skip-dedup', null, InputOption::VALUE_NONE, 'Skip the similarity deduplication phase');
-        $this->addOption('skip-summarization', null, InputOption::VALUE_NONE, 'Skip the summarization phase');
     }
 
     public function handle(): void
@@ -46,9 +41,15 @@ class NightlyRunCommand extends HyperfCommand
         }
 
         $skipped = [];
-        if ($skipValidation) $skipped[] = 'validation';
-        if ($skipDedup) $skipped[] = 'dedup';
-        if ($skipSummarization) $skipped[] = 'summarization';
+        if ($skipValidation) {
+            $skipped[] = 'validation';
+        }
+        if ($skipDedup) {
+            $skipped[] = 'dedup';
+        }
+        if ($skipSummarization) {
+            $skipped[] = 'summarization';
+        }
         if (!empty($skipped)) {
             $this->info('Skipping phases: ' . implode(', ', $skipped));
         }
@@ -69,8 +70,17 @@ class NightlyRunCommand extends HyperfCommand
         $this->line("  Duplicates merged:     {$stats['merged']}");
         $this->line("  Memories summarized:   {$stats['summarized']}");
         $this->line("  Orphan vectors cleaned: {$stats['orphans_cleaned']}");
-        $this->line("  Haiku budget spent:    $" . number_format($stats['haiku_budget'], 4));
-        $this->line("  Voyage budget spent:   $" . number_format($stats['voyage_budget'], 4));
+        $this->line('  Haiku budget spent:    $' . number_format($stats['haiku_budget'], 4));
+        $this->line('  Voyage budget spent:   $' . number_format($stats['voyage_budget'], 4));
         $this->info('=====================================');
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addOption('dry-run', null, InputOption::VALUE_NONE, 'Preview what would be done without making changes');
+        $this->addOption('skip-validation', null, InputOption::VALUE_NONE, 'Skip the project expert validation phase');
+        $this->addOption('skip-dedup', null, InputOption::VALUE_NONE, 'Skip the similarity deduplication phase');
+        $this->addOption('skip-summarization', null, InputOption::VALUE_NONE, 'Skip the summarization phase');
     }
 }

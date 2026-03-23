@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Skills;
 
-use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Generates and cleans up temporary MCP server configuration JSON files for Claude CLI tasks.
+ */
 class McpConfigGenerator
 {
     private const TEMP_PREFIX = '/tmp/cc-mcp-';
@@ -34,6 +37,7 @@ class McpConfigGenerator
         $path = self::TEMP_PREFIX . $taskId . '.json';
         file_put_contents($path, $json);
         $this->logger->debug("MCP config written to {$path}");
+
         return $path;
     }
 

@@ -6,6 +6,10 @@ namespace App\Database;
 
 use Hyperf\Database\Query\Grammars\Grammar;
 
+/**
+ * PostgreSQL-specific query grammar that adds ON CONFLICT (upsert/insert-or-ignore)
+ * support and case-insensitive ILIKE for LIKE operators.
+ */
 class PostgresQueryGrammar extends Grammar
 {
     /**
@@ -38,6 +42,8 @@ class PostgresQueryGrammar extends Grammar
 
     /**
      * Compile a "where like" clause.
+     *
+     * @param array $where
      */
     protected function whereBasic(\Hyperf\Database\Query\Builder $query, $where): string
     {

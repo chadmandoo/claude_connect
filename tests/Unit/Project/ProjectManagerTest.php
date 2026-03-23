@@ -13,13 +13,22 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for ProjectManager.
+ *
+ * Covers: project creation with UUID and history tracking, retrieval (found and not found),
+ * listing projects, workspace creation with named lookup, and ensureGeneralProject
+ * (existing vs. auto-creation).
+ */
 class ProjectManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private ProjectManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private RedisStore|Mockery\MockInterface $redis;
 
     protected function setUp(): void
@@ -46,7 +55,7 @@ class ProjectManagerTest extends TestCase
         $this->assertIsString($result);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $result
+            $result,
         );
     }
 
@@ -117,7 +126,7 @@ class ProjectManagerTest extends TestCase
         $this->assertIsString($result);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $result
+            $result,
         );
     }
 
@@ -157,7 +166,7 @@ class ProjectManagerTest extends TestCase
         $this->assertIsString($result);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $result
+            $result,
         );
     }
 }

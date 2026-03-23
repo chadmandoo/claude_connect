@@ -6,16 +6,29 @@ namespace App\Cleanup;
 
 use Hyperf\Contract\ConfigInterface;
 
+/**
+ * Immutable configuration for the cleanup agent, sourced from Hyperf config with optional overrides.
+ *
+ * Defines retention periods, batch sizes, budget limits, and stale task timeout thresholds.
+ */
 class CleanupConfig
 {
     public readonly bool $enabled;
+
     public readonly int $interval;
+
     public readonly int $retentionDaysTasks;
+
     public readonly int $retentionDaysConversations;
+
     public readonly int $batchSize;
+
     public readonly float $maxBudgetUsd;
+
     public readonly float $haikuCallBudgetUsd;
+
     public readonly int $maxItemsPerRun;
+
     public readonly int $staleTaskTimeoutSeconds;
 
     public function __construct(ConfigInterface $config, array $overrides = [])

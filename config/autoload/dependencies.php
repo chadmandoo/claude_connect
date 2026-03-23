@@ -2,57 +2,57 @@
 
 declare(strict_types=1);
 
-use App\Database\PostgresConnector;
+use App\Agent\AgentSupervisor;
+use App\Agent\PromptComposer;
+use App\Agent\Router;
+use App\Chat\AnthropicClient;
+use App\Chat\ChatConversationStore;
+use App\Chat\ChatSystemPromptBuilder;
+use App\Chat\ChatToolHandler;
+use App\Chat\ToolDefinitions;
+use App\Claude\OutputParser;
+use App\Claude\ProcessManager;
+use App\Claude\SessionManager;
+use App\Cleanup\CleanupAgent;
+use App\Conversation\ConversationManager;
 use App\Database\PostgresConnection;
+use App\Database\PostgresConnector;
+use App\Embedding\EmbeddingService;
+use App\Embedding\VectorStore;
+use App\Embedding\VoyageClient;
+use App\Epic\EpicManager;
+use App\Item\ItemManager;
+use App\Memory\MemoryAnalytics;
+use App\Memory\MemoryManager;
+use App\Nightly\NightlyConsolidationAgent;
+use App\Note\NoteManager;
+use App\Pipeline\PostTaskPipeline;
+use App\Pipeline\Stages\EmbedConversationStage;
+use App\Pipeline\Stages\EmbedTaskResultStage;
+use App\Pipeline\Stages\ExtractConversationStage;
+use App\Pipeline\Stages\ExtractMemoryStage;
+use App\Pipeline\Stages\ProjectDetectionStage;
+use App\Project\ProjectManager;
+use App\Project\ProjectOrchestrator;
+use App\Prompts\PromptLoader;
+use App\Skills\BuiltinSkills;
+use App\Skills\McpConfigGenerator;
+use App\Skills\SkillRegistry;
+use App\StateMachine\TaskManager;
 use App\Storage\PostgresStore;
 use App\Storage\RedisStore;
 use App\Storage\SwooleTableCache;
-use Hyperf\Database\Connection;
-use App\StateMachine\TaskManager;
-use App\Claude\ProcessManager;
-use App\Claude\OutputParser;
-use App\Claude\SessionManager;
-use App\Memory\MemoryManager;
-use App\Skills\SkillRegistry;
-use App\Skills\McpConfigGenerator;
-use App\Skills\BuiltinSkills;
-use App\Prompts\PromptLoader;
-use App\Project\ProjectManager;
-use App\Project\ProjectOrchestrator;
-use App\Cleanup\CleanupAgent;
-use App\Embedding\VoyageClient;
-use App\Embedding\VectorStore;
-use App\Embedding\EmbeddingService;
-use App\Nightly\NightlyConsolidationAgent;
-use App\Pipeline\PostTaskPipeline;
-use App\Pipeline\Stages\ExtractMemoryStage;
-use App\Pipeline\Stages\ExtractConversationStage;
-use App\Pipeline\Stages\ProjectDetectionStage;
-use App\Workflow\TemplateResolver;
-use App\Workflow\ItemAgent;
-use App\Memory\MemoryAnalytics;
-use App\Pipeline\Stages\EmbedConversationStage;
-use App\Pipeline\Stages\EmbedTaskResultStage;
-use App\Conversation\ConversationManager;
-use App\Agent\PromptComposer;
-use App\Agent\Router;
-use App\Web\WebAuthManager;
-use App\Web\ChatManager;
-use App\Web\WebSocketHandler;
-use App\Web\TaskNotifier;
-use App\Epic\EpicManager;
-use App\Item\ItemManager;
-use App\Note\NoteManager;
 use App\Todo\TodoManager;
-use App\Chat\AnthropicClient;
-use App\Chat\ChatToolHandler;
-use App\Chat\ChatConversationStore;
-use App\Chat\ChatSystemPromptBuilder;
-use App\Chat\ToolDefinitions;
-use App\Agent\AgentSupervisor;
-use Psr\Log\LoggerInterface;
+use App\Web\ChatManager;
+use App\Web\TaskNotifier;
+use App\Web\WebAuthManager;
+use App\Web\WebSocketHandler;
+use App\Workflow\ItemAgent;
+use App\Workflow\TemplateResolver;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Database\Connection;
 use Hyperf\Redis\Redis;
+use Psr\Log\LoggerInterface;
 
 return [
     // Register Postgres connector + connection resolver for Hyperf's database layer
@@ -62,6 +62,7 @@ return [
         Connection::resolverFor('pgsql', function ($connection, $database, $prefix, $config) {
             return new PostgresConnection($connection, $database, $prefix, $config);
         });
+
         return new PostgresStore();
     },
     RedisStore::class => RedisStore::class,
@@ -80,6 +81,7 @@ return [
     CleanupAgent::class => CleanupAgent::class,
     VoyageClient::class => function (\Psr\Container\ContainerInterface $container) {
         $config = $container->get(ConfigInterface::class);
+
         return new VoyageClient(
             apiKey: (string) $config->get('mcp.embedding.api_key', ''),
             model: (string) $config->get('mcp.embedding.model', 'voyage-3.5-lite'),
@@ -90,6 +92,7 @@ return [
     },
     VectorStore::class => function (\Psr\Container\ContainerInterface $container) {
         $config = $container->get(ConfigInterface::class);
+
         return new VectorStore(
             redis: $container->get(Redis::class),
             dimensions: (int) $config->get('mcp.embedding.dimensions', 512),
@@ -119,6 +122,7 @@ return [
     MemoryAnalytics::class => MemoryAnalytics::class,
     AnthropicClient::class => function (\Psr\Container\ContainerInterface $container) {
         $config = $container->get(ConfigInterface::class);
+
         return new AnthropicClient(
             apiKey: (string) $config->get('mcp.chat.api_key', ''),
             model: (string) $config->get('mcp.chat.model', 'claude-sonnet-4-20250514'),
@@ -134,6 +138,7 @@ return [
         $store = new ChatConversationStore(
             compactionThreshold: (int) $config->get('mcp.chat.compaction_threshold', 30),
         );
+
         return $store;
     },
     ChatSystemPromptBuilder::class => ChatSystemPromptBuilder::class,

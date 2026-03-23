@@ -8,7 +8,12 @@ use App\Storage\PostgresStore;
 use App\Storage\RedisStore;
 use App\Storage\SwooleTableCache;
 use Hyperf\Di\Annotation\Inject;
+use Throwable;
 
+/**
+ * HTTP health check endpoint that reports Redis, PostgreSQL, and Swoole status
+ * along with active task and session counts.
+ */
 class HealthController
 {
     #[Inject]
@@ -24,13 +29,13 @@ class HealthController
     {
         try {
             $redisOk = $this->redis->ping();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $redisOk = false;
         }
 
         try {
             $postgresOk = $this->store->ping();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $postgresOk = false;
         }
 

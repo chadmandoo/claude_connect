@@ -6,7 +6,14 @@ namespace Tests\Unit\Claude;
 
 use App\Claude\ParsedOutput;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
+/**
+ * Tests for ParsedOutput.
+ *
+ * Covers: construction via fromSuccess/fromFailure factory methods, direct constructor usage,
+ * handling of raw data (cost, tokens), readonly property enforcement, and default values.
+ */
 class ParsedOutputTest extends TestCase
 {
     public function testFromSuccessBasic(): void
@@ -81,7 +88,7 @@ class ParsedOutputTest extends TestCase
     {
         $output = ParsedOutput::fromSuccess('test');
 
-        $reflection = new \ReflectionClass($output);
+        $reflection = new ReflectionClass($output);
         $properties = $reflection->getProperties();
 
         foreach ($properties as $property) {

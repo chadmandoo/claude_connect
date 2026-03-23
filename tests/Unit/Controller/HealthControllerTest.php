@@ -11,16 +11,26 @@ use App\Storage\SwooleTableCache;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for HealthController.
+ *
+ * Covers: healthy status when all services are up, degraded status when Redis or
+ * Postgres are down or throw exceptions, active task/session counts, and ISO 8601 timestamps.
+ */
 class HealthControllerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private HealthController $controller;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private RedisStore|Mockery\MockInterface $redis;
+
     private SwooleTableCache|Mockery\MockInterface $cache;
 
     protected function setUp(): void
@@ -85,7 +95,7 @@ class HealthControllerTest extends TestCase
     public function testDegradedWhenRedisThrows(): void
     {
         $this->redis->shouldReceive('ping')
-            ->andThrow(new \RuntimeException('Connection refused'));
+            ->andThrow(new RuntimeException('Connection refused'));
         $this->store->shouldReceive('ping')->andReturn(true);
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
@@ -100,7 +110,7 @@ class HealthControllerTest extends TestCase
     {
         $this->redis->shouldReceive('ping')->andReturn(true);
         $this->store->shouldReceive('ping')
-            ->andThrow(new \RuntimeException('Connection refused'));
+            ->andThrow(new RuntimeException('Connection refused'));
         $this->cache->shouldReceive('getActiveTasks')->andReturn([]);
         $this->cache->shouldReceive('getActiveSessions')->andReturn([]);
 

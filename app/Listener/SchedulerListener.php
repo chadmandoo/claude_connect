@@ -10,7 +10,14 @@ use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\AfterWorkerStart;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Handles AfterWorkerStart to launch the SchedulerRunner on worker 0.
+ *
+ * Starts the cron-style scheduler that evaluates and dispatches scheduled
+ * tasks in a background coroutine.
+ */
 #[Listener]
 class SchedulerListener implements ListenerInterface
 {
@@ -36,11 +43,12 @@ class SchedulerListener implements ListenerInterface
 
         \Swoole\Coroutine::create(function () {
             $logger = $this->container->get(LoggerInterface::class);
+
             try {
                 $logger->info('SchedulerRunner: starting on worker 0');
                 $runner = $this->container->get(SchedulerRunner::class);
                 $runner->start();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $logger->error("SchedulerRunner fatal: {$e->getMessage()}");
             }
         });

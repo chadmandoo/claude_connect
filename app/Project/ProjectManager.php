@@ -8,7 +8,16 @@ use App\Storage\PostgresStore;
 use App\Storage\RedisStore;
 use Hyperf\Di\Annotation\Inject;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
+use Throwable;
 
+/**
+ * Manages project and workspace lifecycle including creation, state transitions,
+ * plan management, cost tracking, and step result storage.
+ *
+ * Handles both orchestrated projects (with plans and budgets) and static workspaces
+ * used for organizing conversations and memories.
+ */
 class ProjectManager
 {
     #[Inject]
@@ -104,13 +113,14 @@ class ProjectManager
 
         try {
             $id = $this->createWorkspace('General', 'Default workspace for general conversations', $userId);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // Race condition: another worker created it first
             $existingId = $this->store->getProjectByName('General');
             if ($existingId !== null) {
                 return $existingId;
             }
-            throw new \RuntimeException('Failed to create General project');
+
+            throw new RuntimeException('Failed to create General project');
         }
 
         return $id;
@@ -122,6 +132,7 @@ class ProjectManager
         if ($id === null) {
             return null;
         }
+
         return $this->getProject($id);
     }
 
@@ -157,14 +168,14 @@ class ProjectManager
     {
         $project = $this->store->getProject($projectId);
         if (!$project) {
-            throw new \RuntimeException("Project {$projectId} not found");
+            throw new RuntimeException("Project {$projectId} not found");
         }
 
         $currentState = ProjectState::from($project['state']);
 
         if (!$currentState->canTransitionTo($targetState)) {
-            throw new \RuntimeException(
-                "Invalid project transition from {$currentState->value} to {$targetState->value}"
+            throw new RuntimeException(
+                "Invalid project transition from {$currentState->value} to {$targetState->value}",
             );
         }
 
@@ -250,6 +261,7 @@ class ProjectManager
         $project = $this->store->getProject($projectId);
         $count = (int) ($project['retry_count'] ?? 0) + 1;
         $this->store->updateProject($projectId, ['retry_count' => $count]);
+
         return $count;
     }
 

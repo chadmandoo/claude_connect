@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace App\Pipeline\Stages;
 
-use App\Pipeline\PipelineContext;
-use App\Pipeline\PipelineStage;
 use App\Conversation\ConversationManager;
 use App\Embedding\EmbeddingService;
+use App\Pipeline\PipelineContext;
+use App\Pipeline\PipelineStage;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Pipeline stage that generates a vector embedding of the conversation summary.
+ *
+ * Embeds the conversation summary into the vector store for future semantic search,
+ * enabling retrieval of relevant past conversations during prompt building.
+ */
 class EmbedConversationStage implements PipelineStage
 {
     public function __construct(
         private readonly ConversationManager $conversationManager,
         private readonly EmbeddingService $embeddingService,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {

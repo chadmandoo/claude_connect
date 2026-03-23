@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace App\Agent;
 
+use App\Chat\ChatConversationStore;
+use App\Conversation\ConversationManager;
+use App\Pipeline\PipelineContext;
+use App\Pipeline\PostTaskPipeline;
 use App\StateMachine\TaskManager;
 use App\StateMachine\TaskState;
-use App\Conversation\ConversationManager;
-use App\Chat\ChatConversationStore;
-use App\Pipeline\PostTaskPipeline;
-use App\Pipeline\PipelineContext;
 use App\Web\TaskNotifier;
-use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Background supervisor loop that monitors running tasks for completion, failure, and stalls.
+ *
+ * Sends WebSocket notifications on state changes, retries failed tasks up to a configured limit,
+ * kills stalled processes, and runs the post-task pipeline on completion.
+ */
 class AgentSupervisor
 {
     #[Inject]
@@ -47,6 +54,7 @@ class AgentSupervisor
     {
         if (!(bool) $this->config->get('mcp.supervisor.enabled', false)) {
             $this->logger->info('AgentSupervisor: disabled via config');
+
             return;
         }
 
@@ -57,7 +65,7 @@ class AgentSupervisor
         while ($this->running) {
             try {
                 $this->tick();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("AgentSupervisor tick error: {$e->getMessage()}");
             }
             \Swoole\Coroutine::sleep($interval);
@@ -134,7 +142,7 @@ class AgentSupervisor
                     }
                 }
 
-                $this->logger->warning("AgentSupervisor: task {$taskId} stalled for " . ($now - $startTime) . "s, killing");
+                $this->logger->warning("AgentSupervisor: task {$taskId} stalled for " . ($now - $startTime) . 's, killing');
                 if ($pid > 0) {
                     posix_kill($pid, SIGTERM);
                 }
@@ -160,7 +168,9 @@ class AgentSupervisor
         foreach ($runningTasks as $task) {
             $taskId = $task['id'] ?? '';
             $options = json_decode($task['options'] ?? '{}', true);
-            if (($options['dispatch_mode'] ?? '') !== 'supervisor') continue;
+            if (($options['dispatch_mode'] ?? '') !== 'supervisor') {
+                continue;
+            }
             if (!isset($this->runningTasks[$taskId])) {
                 $this->runningTasks[$taskId] = (int) ($task['started_at'] ?? time());
             }
@@ -172,7 +182,9 @@ class AgentSupervisor
 
         foreach (array_merge($completedTasks, $failedTasks) as $task) {
             $taskId = $task['id'] ?? '';
-            if (!isset($this->runningTasks[$taskId])) continue;
+            if (!isset($this->runningTasks[$taskId])) {
+                continue;
+            }
 
             $state = $task['state'] ?? '';
             $startTime = $this->runningTasks[$taskId];
@@ -210,7 +222,7 @@ class AgentSupervisor
                     'role' => 'assistant',
                     'content' => $result,
                 ]);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->warning("AgentSupervisor: failed to append chat history for task {$taskId}: {$e->getMessage()}");
             }
         }
@@ -242,7 +254,7 @@ class AgentSupervisor
                     conversationType: 'task',
                 );
                 $this->pipeline->run($context);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("AgentSupervisor: pipeline failed for task {$taskId}: {$e->getMessage()}");
             }
         });

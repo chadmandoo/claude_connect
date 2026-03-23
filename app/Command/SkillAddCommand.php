@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Skills\SkillRegistry;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * CLI command `skill:add` to register an MCP server skill with a command, arguments, and scope.
+ */
 #[Command]
 class SkillAddCommand extends HyperfCommand
 {
@@ -24,15 +27,6 @@ class SkillAddCommand extends HyperfCommand
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        parent::configure();
-        $this->addArgument('skill_name', InputArgument::REQUIRED, 'The skill name');
-        $this->addOption('command', null, InputOption::VALUE_REQUIRED, 'The command to run');
-        $this->addOption('args', null, InputOption::VALUE_REQUIRED, 'Comma-separated arguments');
-        $this->addOption('scope', null, InputOption::VALUE_OPTIONAL, 'Scope: "global" or a user ID', 'global');
-    }
-
     public function handle(): void
     {
         $name = $this->input->getArgument('skill_name');
@@ -42,6 +36,7 @@ class SkillAddCommand extends HyperfCommand
 
         if (!$command) {
             $this->error('--command is required');
+
             return;
         }
 
@@ -61,5 +56,14 @@ class SkillAddCommand extends HyperfCommand
 
         $this->info("Skill '{$name}' registered in scope '{$scope}'");
         $this->line('Config: ' . json_encode($config, JSON_PRETTY_PRINT));
+    }
+
+    protected function configure(): void
+    {
+        parent::configure();
+        $this->addArgument('skill_name', InputArgument::REQUIRED, 'The skill name');
+        $this->addOption('command', null, InputOption::VALUE_REQUIRED, 'The command to run');
+        $this->addOption('args', null, InputOption::VALUE_REQUIRED, 'Comma-separated arguments');
+        $this->addOption('scope', null, InputOption::VALUE_OPTIONAL, 'Scope: "global" or a user ID', 'global');
     }
 }

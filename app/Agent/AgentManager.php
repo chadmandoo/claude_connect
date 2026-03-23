@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Agent;
 
-use App\Storage\PostgresStore;
 use App\Prompts\PromptLoader;
+use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
+use Throwable;
 
+/**
+ * Manages agent lifecycle: creation, retrieval, update, deletion, and seeding of system agents.
+ *
+ * Also handles room-agent associations and default agent resolution.
+ */
 class AgentManager
 {
     #[Inject]
@@ -44,6 +51,7 @@ class AgentManager
         ]);
 
         $this->logger->info("Agent created: {$data['slug']} ({$id})");
+
         return $id;
     }
 
@@ -72,6 +80,7 @@ class AgentManager
 
         // Last resort: seed and return
         $this->seedDefaultAgents();
+
         return $this->store->getDefaultAgent() ?? $this->store->getAgentBySlug('pm') ?? [];
     }
 
@@ -84,12 +93,12 @@ class AgentManager
     {
         $agent = $this->store->getAgent($id);
         if ($agent === null) {
-            throw new \RuntimeException("Agent {$id} not found");
+            throw new RuntimeException("Agent {$id} not found");
         }
 
         // Prevent editing slug on system agents
         if (($agent['is_system'] ?? '0') === '1' && isset($data['slug']) && $data['slug'] !== $agent['slug']) {
-            throw new \RuntimeException("Cannot change slug of system agent");
+            throw new RuntimeException('Cannot change slug of system agent');
         }
 
         $update = [];
@@ -124,11 +133,11 @@ class AgentManager
     {
         $agent = $this->store->getAgent($id);
         if ($agent === null) {
-            throw new \RuntimeException("Agent {$id} not found");
+            throw new RuntimeException("Agent {$id} not found");
         }
 
         if (($agent['is_system'] ?? '0') === '1') {
-            throw new \RuntimeException("Cannot delete system agent");
+            throw new RuntimeException('Cannot delete system agent');
         }
 
         $this->store->deleteAgent($id);
@@ -201,9 +210,10 @@ class AgentManager
             }
 
             $promptContent = '';
+
             try {
                 $promptContent = $this->promptLoader->load($agentData['prompt_file']);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->warning("Failed to load prompt for {$agentData['slug']}: {$e->getMessage()}");
             }
 
@@ -219,7 +229,7 @@ class AgentManager
             ]);
         }
 
-        $this->logger->info("Default agents seeded");
+        $this->logger->info('Default agents seeded');
 
         // Seed a channel per system agent (idempotent)
         $this->seedAgentChannels();
@@ -233,13 +243,15 @@ class AgentManager
     {
         $systemAgents = array_filter(
             $this->listAgents(),
-            fn($a) => in_array($a['is_system'] ?? false, [true, 1, '1', 't'], true)
+            fn ($a) => in_array($a['is_system'] ?? false, [true, 1, '1', 't'], true),
         );
 
         foreach ($systemAgents as $agent) {
             $slug = $agent['slug'] ?? '';
             $agentId = $agent['id'] ?? '';
-            if ($slug === '' || $agentId === '') continue;
+            if ($slug === '' || $agentId === '') {
+                continue;
+            }
 
             $channelId = "agent_{$slug}";
             $existing = $this->store->getChannel($channelId);

@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Agent\AgentManager;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Psr\Container\ContainerInterface;
 
+/**
+ * CLI command `agent:list` to display all registered agents in a table with slug, name, flags, and model.
+ */
 #[Command]
 class AgentListCommand extends HyperfCommand
 {
@@ -29,6 +32,7 @@ class AgentListCommand extends HyperfCommand
 
         if (empty($agents)) {
             $this->warn('No agents found.');
+
             return;
         }
 

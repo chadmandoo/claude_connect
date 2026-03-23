@@ -116,6 +116,7 @@ class SchedulerManager
             $job['next_run'] = $this->calculateNextRun($job);
         }
         $this->store->saveScheduledJob($job);
+
         return true;
     }
 
@@ -160,12 +161,14 @@ class SchedulerManager
             $hour = (int) ($job['schedule_hour'] ?? 0);
             $minute = (int) ($job['schedule_minute'] ?? 0);
             $today = mktime($hour, $minute, 0);
+
             return $today > time() ? $today : $today + 86400;
         }
 
         // Interval-based
         $seconds = (int) ($job['schedule_seconds'] ?? 3600);
         $lastRun = (int) ($job['last_run'] ?? 0);
+
         return $lastRun > 0 ? $lastRun + $seconds : time() + 30; // First run 30s after registration
     }
 
@@ -191,6 +194,7 @@ class SchedulerManager
         ];
         $job['next_run'] = $this->calculateNextRun($job);
         $this->store->saveScheduledJob($job);
+
         return $id;
     }
 

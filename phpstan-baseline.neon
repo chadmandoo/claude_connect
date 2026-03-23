@@ -1,0 +1,3493 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:createAgent\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:getAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:getAgentBySlug\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:getDefaultAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:getRoomAgents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:getRoomDefaultAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:listAgents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentManager\:\:updateAgent\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Property App\\Agent\\AgentManager\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Property App\\Agent\\AgentManager\:\:\$promptLoader is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Property App\\Agent\\AgentManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentManager.php
+
+		-
+			message: '#^Method App\\Agent\\AgentPromptBuilder\:\:build\(\) has parameter \$agent with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentPromptBuilder.php
+
+		-
+			message: '#^Property App\\Agent\\AgentPromptBuilder\:\:\$agentManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentPromptBuilder.php
+
+		-
+			message: '#^Property App\\Agent\\AgentPromptBuilder\:\:\$logger is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: app/Agent/AgentPromptBuilder.php
+
+		-
+			message: '#^Property App\\Agent\\AgentPromptBuilder\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentPromptBuilder.php
+
+		-
+			message: '#^Property App\\Agent\\AgentPromptBuilder\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentPromptBuilder.php
+
+		-
+			message: '#^Property App\\Agent\\AgentPromptBuilder\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentPromptBuilder.php
+
+		-
+			message: '#^Method App\\Agent\\AgentSupervisor\:\:handleTaskCompletion\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Method App\\Agent\\AgentSupervisor\:\:runPostPipeline\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Method App\\Agent\\AgentSupervisor\:\:runPostPipeline\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$chatConversationStore is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$conversationManager is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$notifier is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$pipeline is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Property App\\Agent\\AgentSupervisor\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Agent/AgentSupervisor.php
+
+		-
+			message: '#^Method App\\Backup\\DatabaseBackupAgent\:\:getConfig\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Backup/DatabaseBackupAgent.php
+
+		-
+			message: '#^Property App\\Backup\\DatabaseBackupAgent\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Backup/DatabaseBackupAgent.php
+
+		-
+			message: '#^Property App\\Backup\\DatabaseBackupAgent\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Backup/DatabaseBackupAgent.php
+
+		-
+			message: '#^Property App\\Backup\\DatabaseBackupAgent\:\:\$systemChannel is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Backup/DatabaseBackupAgent.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:buildUsage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:callApi\(\) has parameter \$messages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:callApi\(\) has parameter \$tools with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:callApi\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:extractText\(\) has parameter \$content with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:sendMessage\(\) has parameter \$messages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:sendMessage\(\) has parameter \$tools with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\AnthropicClient\:\:sendMessage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/AnthropicClient.php
+
+		-
+			message: '#^Method App\\Chat\\ChatConversationStore\:\:appendMessage\(\) has parameter \$message with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Method App\\Chat\\ChatConversationStore\:\:findSafeCutPoint\(\) has parameter \$history with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Method App\\Chat\\ChatConversationStore\:\:getHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Method App\\Chat\\ChatConversationStore\:\:sanitizeHistory\(\) has parameter \$messages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Method App\\Chat\\ChatConversationStore\:\:sanitizeHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Property App\\Chat\\ChatConversationStore\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Property App\\Chat\\ChatConversationStore\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatConversationStore.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:cancelTask\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:cancelTask\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:checkTaskStatus\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:checkTaskStatus\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:createItem\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:createItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:createProject\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:createProject\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:createTask\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:createTask\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:execute\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:execute\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:getTaskOutput\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:getTaskOutput\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:handoffAgent\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:handoffAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:listItems\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:listItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:listProjects\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:listProjects\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:listTasks\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:listTasks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:searchMemory\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:searchMemory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:storeMemory\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:storeMemory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:updateItem\(\) has parameter \$input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ChatToolHandler\:\:updateItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Offset ''category'' on array\{memory_id\: string, score\: float, content\: string, category\: string, importance\: string, project_id\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Offset ''content'' on array\{memory_id\: string, score\: float, content\: string, category\: string, importance\: string, project_id\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Offset ''memory_id'' on array\{memory_id\: string, score\: float, content\: string, category\: string, importance\: string, project_id\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Offset ''score'' on array\{memory_id\: string, score\: float, content\: string, category\: string, importance\: string, project_id\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$agentId is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$agentManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$embeddingService is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$itemManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$processManager is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Property App\\Chat\\ChatToolHandler\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Chat/ChatToolHandler.php
+
+		-
+			message: '#^Method App\\Chat\\ToolDefinitions\:\:getTools\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Chat/ToolDefinitions.php
+
+		-
+			message: '#^Method App\\Claude\\OutputParser\:\:extractImages\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/OutputParser.php
+
+		-
+			message: '#^Method App\\Claude\\OutputParser\:\:extractImages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/OutputParser.php
+
+		-
+			message: '#^Method App\\Claude\\OutputParser\:\:extractMemoryTags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/OutputParser.php
+
+		-
+			message: '#^Method App\\Claude\\OutputParser\:\:extractResult\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/OutputParser.php
+
+		-
+			message: '#^Method App\\Claude\\OutputParser\:\:extractWorkItemTags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/OutputParser.php
+
+		-
+			message: '#^Method App\\Claude\\ParsedOutput\:\:__construct\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ParsedOutput.php
+
+		-
+			message: '#^Method App\\Claude\\ParsedOutput\:\:__construct\(\) has parameter \$raw with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ParsedOutput.php
+
+		-
+			message: '#^Method App\\Claude\\ParsedOutput\:\:fromFailure\(\) has parameter \$raw with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ParsedOutput.php
+
+		-
+			message: '#^Method App\\Claude\\ParsedOutput\:\:fromSuccess\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ParsedOutput.php
+
+		-
+			message: '#^Method App\\Claude\\ParsedOutput\:\:fromSuccess\(\) has parameter \$raw with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ParsedOutput.php
+
+		-
+			message: '#^Constant BASE_PATH not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\ProcessManager\:\:buildCommand\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\ProcessManager\:\:buildCommand\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\ProcessManager\:\:buildEnvironment\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\ProcessManager\:\:continueTask\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\ProcessManager\:\:continueTaskWithCallbacks\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\ProcessManager\:\:readPipesConcurrently\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$agentManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$agentPromptBuilder is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$conversationManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$epicManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$itemManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$mcpConfigGenerator is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$outputParser is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$promptLoader is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$skillRegistry is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Property App\\Claude\\ProcessManager\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Variable \$skills in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: app/Claude/ProcessManager.php
+
+		-
+			message: '#^Method App\\Claude\\SessionManager\:\:getSession\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/SessionManager.php
+
+		-
+			message: '#^Method App\\Claude\\SessionManager\:\:listSessions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/SessionManager.php
+
+		-
+			message: '#^Method App\\Claude\\SessionManager\:\:updateSession\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Claude/SessionManager.php
+
+		-
+			message: '#^Property App\\Claude\\SessionManager\:\:\$cache is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/SessionManager.php
+
+		-
+			message: '#^Property App\\Claude\\SessionManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Claude/SessionManager.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:consolidate\(\) has parameter \$allCandidates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:consolidate\(\) has parameter \$coreItems with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:defaultClassifications\(\) has parameter \$batch with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:defaultClassifications\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:findCandidate\(\) has parameter \$candidates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:findCandidate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:formatConversationForTriage\(\) has parameter \$conv with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:formatConversationForTriage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:formatTaskForTriage\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:formatTaskForTriage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:gatherConversationCandidates\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:gatherTaskCandidates\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:parseTriageResult\(\) has parameter \$batch with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:parseTriageResult\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:pruneItems\(\) has parameter \$allCandidates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:pruneItems\(\) has parameter \$classifications with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:pruneItems\(\) has parameter \$stats with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:pruneItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:run\(\) has parameter \$configOverrides with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:triageBatch\(\) has parameter \$batch with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:triageBatch\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:triageBatched\(\) has parameter \$candidates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupAgent\:\:triageBatched\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$conversationManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$processManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$promptLoader is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Property App\\Cleanup\\CleanupAgent\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^While loop condition is always true\.$#'
+			identifier: while.alwaysTrue
+			count: 1
+			path: app/Cleanup/CleanupAgent.php
+
+		-
+			message: '#^Method App\\Cleanup\\CleanupConfig\:\:__construct\(\) has parameter \$overrides with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Cleanup/CleanupConfig.php
+
+		-
+			message: '#^Method App\\Controller\\HealthController\:\:index\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Controller/HealthController.php
+
+		-
+			message: '#^Property App\\Controller\\HealthController\:\:\$cache is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Controller/HealthController.php
+
+		-
+			message: '#^Property App\\Controller\\HealthController\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Controller/HealthController.php
+
+		-
+			message: '#^Property App\\Controller\\HealthController\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Controller/HealthController.php
+
+		-
+			message: '#^Call to an undefined method Hyperf\\HttpServer\\Contract\\ResponseInterface\:\:withStatus\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: app/Controller/WebController.php
+
+		-
+			message: '#^Constant BASE_PATH not found\.$#'
+			identifier: constant.notFound
+			count: 2
+			path: app/Controller/WebController.php
+
+		-
+			message: '#^Property App\\Controller\\WebController\:\:\$authManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Controller/WebController.php
+
+		-
+			message: '#^Property App\\Controller\\WebController\:\:\$request is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Controller/WebController.php
+
+		-
+			message: '#^Property App\\Controller\\WebController\:\:\$response is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Controller/WebController.php
+
+		-
+			message: '#^Method App\\Conversation\\ConversationManager\:\:getConversation\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Conversation/ConversationManager.php
+
+		-
+			message: '#^Method App\\Conversation\\ConversationManager\:\:getConversationTurns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Conversation/ConversationManager.php
+
+		-
+			message: '#^Method App\\Conversation\\ConversationManager\:\:listConversations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Conversation/ConversationManager.php
+
+		-
+			message: '#^Method App\\Conversation\\ConversationManager\:\:updateSummary\(\) has parameter \$takeaways with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Conversation/ConversationManager.php
+
+		-
+			message: '#^Property App\\Conversation\\ConversationManager\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Conversation/ConversationManager.php
+
+		-
+			message: '#^Property App\\Conversation\\ConversationManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Conversation/ConversationManager.php
+
+		-
+			message: '#^Instantiated class Hyperf\\Database\\Schema\\Grammars\\Grammar is abstract\.$#'
+			identifier: new.abstract
+			count: 1
+			path: app/Database/PostgresConnection.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnection\:\:getDefaultQueryGrammar\(\) should return Hyperf\\Database\\Query\\Grammars\\Grammar but returns Hyperf\\Database\\Grammar\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Database/PostgresConnection.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnection\:\:getDefaultSchemaGrammar\(\) should return Hyperf\\Database\\Schema\\Grammars\\Grammar but returns Hyperf\\Database\\Grammar\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Database/PostgresConnection.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnector\:\:configureEncoding\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresConnector.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnector\:\:configureSchema\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresConnector.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnector\:\:configureTimezone\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresConnector.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnector\:\:connect\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresConnector.php
+
+		-
+			message: '#^Method App\\Database\\PostgresConnector\:\:getDsn\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresConnector.php
+
+		-
+			message: '#^Method App\\Database\\PostgresQueryGrammar\:\:compileInsertOrIgnore\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresQueryGrammar.php
+
+		-
+			message: '#^Method App\\Database\\PostgresQueryGrammar\:\:compileUpsert\(\) has parameter \$uniqueBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresQueryGrammar.php
+
+		-
+			message: '#^Method App\\Database\\PostgresQueryGrammar\:\:compileUpsert\(\) has parameter \$update with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresQueryGrammar.php
+
+		-
+			message: '#^Method App\\Database\\PostgresQueryGrammar\:\:compileUpsert\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresQueryGrammar.php
+
+		-
+			message: '#^Method App\\Database\\PostgresQueryGrammar\:\:whereBasic\(\) has parameter \$where with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Database/PostgresQueryGrammar.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Embedding/EmbeddingService.php
+
+		-
+			message: '#^Offset ''created_at'' on array\{id\: string, user_id\: string, project_id\: string, category\: string, importance\: string, content\: string, created_at\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Embedding/EmbeddingService.php
+
+		-
+			message: '#^Offset ''importance'' on array\{id\: string, user_id\: string, project_id\: string, category\: string, importance\: string, content\: string, created_at\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Embedding/EmbeddingService.php
+
+		-
+			message: '#^Offset ''project_id'' on array\{id\: string, user_id\: string, project_id\: string, category\: string, importance\: string, content\: string, created_at\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Embedding/EmbeddingService.php
+
+		-
+			message: '#^Method App\\Embedding\\VectorStore\:\:parseSearchResults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Embedding/VectorStore.php
+
+		-
+			message: '#^Method App\\Embedding\\VoyageClient\:\:callApi\(\) has parameter \$texts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Embedding/VoyageClient.php
+
+		-
+			message: '#^Property App\\Embedding\\VoyageClient\:\:\$dimensions is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Embedding/VoyageClient.php
+
+		-
+			message: '#^Method App\\Epic\\EpicManager\:\:getEpic\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Epic/EpicManager.php
+
+		-
+			message: '#^Method App\\Epic\\EpicManager\:\:listEpics\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Epic/EpicManager.php
+
+		-
+			message: '#^Method App\\Epic\\EpicManager\:\:updateEpic\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Epic/EpicManager.php
+
+		-
+			message: '#^Property App\\Epic\\EpicManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Epic/EpicManager.php
+
+		-
+			message: '#^Method App\\Epic\\EpicState\:\:allowedTransitions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Epic/EpicState.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:getAssignedItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:getItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:getLinkedConversations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:getLinkedItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:getNotes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:getProjectItemCounts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:listItemsByEpic\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:listItemsByProject\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemManager\:\:updateItem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Property App\\Item\\ItemManager\:\:\$epicManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Property App\\Item\\ItemManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Item/ItemManager.php
+
+		-
+			message: '#^Method App\\Item\\ItemState\:\:allowedTransitions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Item/ItemState.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryAnalytics\:\:bucketByAge\(\) has parameter \$buckets with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryAnalytics.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryAnalytics\:\:getOverview\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryAnalytics.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryAnalytics\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryAnalytics.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryAnalytics\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryAnalytics.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryAnalytics\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryAnalytics.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryAnalytics\:\:\$vectorStore is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryAnalytics.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:extractWords\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getAllMemories\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getFacts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getMemory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getProjectMemories\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getRelevantMemories\(\) has parameter \$memories with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getRelevantMemories\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:getStructuredMemories\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:recordSurfaced\(\) has parameter \$ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:scoreAndRankMemories\(\) has parameter \$memories with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:scoreAndRankMemories\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Method App\\Memory\\MemoryManager\:\:updateMemory\(\) has parameter \$updates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryManager\:\:\$embeddingService is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryManager\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Property App\\Memory\\MemoryManager\:\:\$vectorStore is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Memory/MemoryManager.php
+
+		-
+			message: '#^Property App\\Nightly\\CodebaseContextBuilder\:\:\$logger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Nightly/CodebaseContextBuilder.php
+
+		-
+			message: '#^Cannot unset offset ''_start'' on array\{backfilled\: int, validated\: int, removed_stale\: int, merged\: int, summarized\: int, orphans_cleaned\: int, haiku_budget\: float, voyage_budget\: float, \.\.\.\}\.$#'
+			identifier: unset.offset
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:deduplicateMemories\(\) has parameter \$memories with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:deduplicateMemories\(\) has parameter \$processedIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:parseMergeResult\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:parseStalenessResult\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:parseSummarizationResult\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:parseValidationResult\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:phaseStalenessReview\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Nightly\\NightlyConsolidationAgent\:\:phaseValidation\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Offset ''_start'' on array\{backfilled\: int, validated\: int, removed_stale\: int, merged\: int, summarized\: int, orphans_cleaned\: int, haiku_budget\: float, voyage_budget\: float\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$agentManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$embeddingService is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$epicManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$itemManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$processManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$promptLoader is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Property App\\Nightly\\NightlyConsolidationAgent\:\:\$vectorStore is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^While loop condition is always true\.$#'
+			identifier: while.alwaysTrue
+			count: 1
+			path: app/Nightly/NightlyConsolidationAgent.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:getNotebook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:getPage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:listNotebooks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:listPages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:reorderNotebooks\(\) has parameter \$notebookIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:reorderPages\(\) has parameter \$pageIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:updateNotebook\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Note\\NoteManager\:\:updatePage\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Property App\\Note\\NoteManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Note/NoteManager.php
+
+		-
+			message: '#^Method App\\Pipeline\\PipelineContext\:\:__construct\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Pipeline/PipelineContext.php
+
+		-
+			message: '#^Method App\\Pipeline\\PipelineContext\:\:__construct\(\) has parameter \$templateConfig with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Pipeline/PipelineContext.php
+
+		-
+			message: '#^Property App\\Pipeline\\PipelineContext\:\:\$bag type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Pipeline/PipelineContext.php
+
+		-
+			message: '#^Offset ''success'' on array\{success\: bool, error\?\: string\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Pipeline/PostTaskPipeline.php
+
+		-
+			message: '#^Property App\\Pipeline\\Stages\\EmbedTaskResultStage\:\:\$taskManager is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Pipeline/Stages/EmbedTaskResultStage.php
+
+		-
+			message: '#^Property App\\Pipeline\\Stages\\ExtractMemoryStage\:\:\$logger is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: app/Pipeline/Stages/ExtractMemoryStage.php
+
+		-
+			message: '#^Method App\\Pipeline\\Stages\\ProjectDetectionStage\:\:createProject\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Pipeline/Stages/ProjectDetectionStage.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:addStepResult\(\) has parameter \$stepResult with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:createProject\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:getByName\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:getProject\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:getProjectHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:getStepResults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:listProjects\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:listWorkspaces\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:updatePlan\(\) has parameter \$plan with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectManager\:\:updateWorkspace\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Property App\\Project\\ProjectManager\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Property App\\Project\\ProjectManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectManager.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:buildPlanDisplay\(\) has parameter \$plan with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:checkSafetyLimits\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:executeNextStep\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:generatePlan\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:getCompletedSummaries\(\) has parameter \$plan with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:handleStepCompletion\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:handleStepCompletion\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:handleStepFailure\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:needsCheckpoint\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectOrchestrator\:\:parsePlanResult\(\) has parameter \$project with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Property App\\Project\\ProjectOrchestrator\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Property App\\Project\\ProjectOrchestrator\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Property App\\Project\\ProjectOrchestrator\:\:\$processManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Property App\\Project\\ProjectOrchestrator\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Property App\\Project\\ProjectOrchestrator\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Project/ProjectOrchestrator.php
+
+		-
+			message: '#^Method App\\Project\\ProjectState\:\:allowedTransitions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Project/ProjectState.php
+
+		-
+			message: '#^Constant BASE_PATH not found\.$#'
+			identifier: constant.notFound
+			count: 1
+			path: app/Prompts/PromptLoader.php
+
+		-
+			message: '#^Property App\\Prompts\\PromptLoader\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Prompts/PromptLoader.php
+
+		-
+			message: '#^Method App\\Scheduler\\SchedulerManager\:\:calculateNextRun\(\) has parameter \$job with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Method App\\Scheduler\\SchedulerManager\:\:createJob\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Method App\\Scheduler\\SchedulerManager\:\:getDueJobs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Method App\\Scheduler\\SchedulerManager\:\:getJob\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Method App\\Scheduler\\SchedulerManager\:\:listJobs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Method App\\Scheduler\\SchedulerManager\:\:registerDefaults\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerManager\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerManager.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerRunner\:\:\$cache is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: app/Scheduler/SchedulerRunner.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerRunner\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerRunner.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerRunner\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerRunner.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerRunner\:\:\$manager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerRunner.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerRunner\:\:\$systemChannel is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerRunner.php
+
+		-
+			message: '#^Property App\\Scheduler\\SchedulerRunner\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SchedulerRunner.php
+
+		-
+			message: '#^Method App\\Scheduler\\SystemChannel\:\:broadcastToClients\(\) has parameter \$message with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Scheduler/SystemChannel.php
+
+		-
+			message: '#^Property App\\Scheduler\\SystemChannel\:\:\$cache is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SystemChannel.php
+
+		-
+			message: '#^Property App\\Scheduler\\SystemChannel\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SystemChannel.php
+
+		-
+			message: '#^Property App\\Scheduler\\SystemChannel\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Scheduler/SystemChannel.php
+
+		-
+			message: '#^Method App\\Skills\\BuiltinSkills\:\:getAll\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Skills/BuiltinSkills.php
+
+		-
+			message: '#^Method App\\Skills\\McpConfigGenerator\:\:generateForTask\(\) has parameter \$skills with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Skills/McpConfigGenerator.php
+
+		-
+			message: '#^Property App\\Skills\\McpConfigGenerator\:\:\$config is unused\.$#'
+			identifier: property.unused
+			count: 1
+			path: app/Skills/McpConfigGenerator.php
+
+		-
+			message: '#^Property App\\Skills\\McpConfigGenerator\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Skills/McpConfigGenerator.php
+
+		-
+			message: '#^Method App\\Skills\\SkillRegistry\:\:getSkillsForUser\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Method App\\Skills\\SkillRegistry\:\:listSkills\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Method App\\Skills\\SkillRegistry\:\:registerForUser\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Method App\\Skills\\SkillRegistry\:\:registerGlobal\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Property App\\Skills\\SkillRegistry\:\:\$builtinSkills is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Property App\\Skills\\SkillRegistry\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Property App\\Skills\\SkillRegistry\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Skills/SkillRegistry.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:createTask\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:getTask\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:getTaskImages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:getTaskProgress\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:getTaskTransitions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:listTasks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:setTaskImages\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:setTaskProgress\(\) has parameter \$progress with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:transition\(\) has parameter \$extra with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskManager\:\:updateTaskOptions\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Property App\\StateMachine\\TaskManager\:\:\$cache is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Property App\\StateMachine\\TaskManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/StateMachine/TaskManager.php
+
+		-
+			message: '#^Method App\\StateMachine\\TaskState\:\:allowedTransitions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/StateMachine/TaskState.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addConversationTurn\(\) has parameter \$turn with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addMemoryEntry\(\) has parameter \$entry with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addNightlyRunResult\(\) has parameter \$stats with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addProjectHistory\(\) has parameter \$entry with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addProjectMemoryEntry\(\) has parameter \$entry with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addProjectStep\(\) has parameter \$stepResult with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:addTaskHistory\(\) has parameter \$entry with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createAgent\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createConversation\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createEpic\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createItem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createNotebook\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createPage\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createProject\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createSession\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createTask\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createTodoItem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:createTodoSection\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getAgentBySlug\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getAllItemIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getAllMemory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getAllMemoryEntries\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getAllSkills\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getChannel\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getChannelMessages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getChannels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getConversation\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getConversationItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getConversationTurns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getCoreMemoriesForAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getDefaultAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getEpic\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getItemConversations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getItemNotes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getMemoriesByType\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getMemoriesForAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getMemoryEntries\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getMemoryEntryById\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getMemoryLog\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getNightlyRunHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getNotebook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getOldConversationIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getOldTaskIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getPage\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getProject\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getProjectHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getProjectMemoryEntries\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getProjectSteps\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getRoomAgents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getRoomDefaultAgent\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getScheduledJob\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getScheduledJobs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getSession\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getSkill\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getStaleProjectMemories\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getTask\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getTaskHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getTodoItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getTodoSection\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:getUserTasks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listAgents\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listConversations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listEpicItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listNotebookPages\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listNotebooks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listProjectEpics\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listProjectItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listProjects\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listSessions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listTasks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listTodoItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listTodoSections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:listWorkspaceProjects\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:mapMemoryRow\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:saveChannel\(\) has parameter \$channel with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:saveChannelMessage\(\) has parameter \$message with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:saveScheduledJob\(\) has parameter \$job with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:searchMemoryEntries\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:setSkill\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:toArrayList\(\) has parameter \$rows with no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:toArrayList\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:touchMemoriesSurfaced\(\) has parameter \$ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateAgent\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateConversation\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateEpic\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateItem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateMemoryEntry\(\) has parameter \$updates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateNotebook\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updatePage\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateProject\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateSession\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateTask\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateTodoItem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\PostgresStore\:\:updateTodoSection\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Offset ''agent_id'' on non\-empty\-array on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Storage/PostgresStore.php
+
+		-
+			message: '#^Method App\\Storage\\RedisStore\:\:appendChatHistory\(\) has parameter \$message with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/RedisStore.php
+
+		-
+			message: '#^Method App\\Storage\\RedisStore\:\:getChatHistory\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/RedisStore.php
+
+		-
+			message: '#^Property App\\Storage\\RedisStore\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Storage/RedisStore.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getActiveConversation\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getActiveSession\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getActiveSessions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getActiveTask\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getActiveTasks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getWsConnection\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Storage\\SwooleTableCache\:\:getWsConnections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Storage/SwooleTableCache.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:getItem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:getSection\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:getSectionCounts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:listItems\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:listSections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:reorderItems\(\) has parameter \$itemIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:reorderSections\(\) has parameter \$sectionIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:updateItem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Todo\\TodoManager\:\:updateSection\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Property App\\Todo\\TodoManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Todo/TodoManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:autoDispatchTask\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:autoDispatchTask\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:continueChat\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:extractJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:extractMemoryAsync\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:pushJson\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:sendChat\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:sendChatApi\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\ChatManager\:\:sendRoomAgentReply\(\) has parameter \$agent with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Offset ''cost_usd'' on array\{input_tokens\: int, output_tokens\: int, cost_usd\: float\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Offset ''messages'' on array\{response\: string, messages\: array, usage\: array\{input_tokens\: int, output_tokens\: int, cost_usd\: float\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Offset ''response'' on array\{response\: string, messages\: array, usage\: array\{input_tokens\: int, output_tokens\: int, cost_usd\: float\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 3
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Offset ''usage'' on array\{response\: string, messages\: array, usage\: array\{input_tokens\: int, output_tokens\: int, cost_usd\: float\}\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$agentManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$agentPromptBuilder is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$anthropicClient is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$authManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$chatConversationStore is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$chatToolHandler is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$conversationManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$itemManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$processManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$promptLoader is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$templateResolver is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Property App\\Web\\ChatManager\:\:\$toolDefinitions is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Variable \$newTaskId on left side of \?\? always exists and is always null\.$#'
+			identifier: nullCoalesce.variable
+			count: 2
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Variable \$sanitized in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 2
+			path: app/Web/ChatManager.php
+
+		-
+			message: '#^Method App\\Web\\TaskNotifier\:\:broadcast\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Method App\\Web\\TaskNotifier\:\:broadcastToUser\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Method App\\Web\\TaskNotifier\:\:notifyStateChange\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Method App\\Web\\TaskNotifier\:\:notifyTaskResult\(\) has parameter \$task with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Property App\\Web\\TaskNotifier\:\:\$cache is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Property App\\Web\\TaskNotifier\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Property App\\Web\\TaskNotifier\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Property App\\Web\\TaskNotifier\:\:\$systemChannel is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/TaskNotifier.php
+
+		-
+			message: '#^Property App\\Web\\WebAuthManager\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebAuthManager.php
+
+		-
+			message: '#^Property App\\Web\\WebAuthManager\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebAuthManager.php
+
+		-
+			message: '#^Constant BASE_PATH not found\.$#'
+			identifier: constant.notFound
+			count: 2
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Method App\\Web\\WebSocketHandler\:\:dispatch\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Method App\\Web\\WebSocketHandler\:\:getServer\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Method App\\Web\\WebSocketHandler\:\:handleAuth\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Method App\\Web\\WebSocketHandler\:\:pushJson\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$agentManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$authManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$cache is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$chatManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$container is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$conversationManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$embeddingService is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$epicManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$itemManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$noteManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$redis is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$schedulerManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$sessionManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$store is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$taskNotifier is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Property App\\Web\\WebSocketHandler\:\:\$todoManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between '''' and '''' will always evaluate to false\.$#'
+			identifier: notIdentical.alwaysFalse
+			count: 1
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed~\(0\|0\.0\|''''\|''0''\|array\{\}\|false\|null\) and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 2
+			path: app/Web/WebSocketHandler.php
+
+		-
+			message: '#^Method App\\Workflow\\ItemAgent\:\:buildPrompt\(\) has parameter \$item with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Method App\\Workflow\\ItemAgent\:\:executeItem\(\) has parameter \$item with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$config is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$epicManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$itemManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$logger is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$memoryManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$processManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$projectManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$promptLoader is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Property App\\Workflow\\ItemAgent\:\:\$taskManager is never written, only read\.$#'
+			identifier: property.onlyRead
+			count: 1
+			path: app/Workflow/ItemAgent.php
+
+		-
+			message: '#^Method App\\Workflow\\TemplateResolver\:\:autoDetect\(\) has parameter \$templates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Workflow/TemplateResolver.php
+
+		-
+			message: '#^Method App\\Workflow\\TemplateResolver\:\:autoDetect\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Workflow/TemplateResolver.php
+
+		-
+			message: '#^Method App\\Workflow\\TemplateResolver\:\:listTemplates\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Workflow/TemplateResolver.php
+
+		-
+			message: '#^Method App\\Workflow\\TemplateResolver\:\:resolve\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Workflow/TemplateResolver.php
+
+		-
+			message: '#^Method Tests\\Unit\\Agent\\AgentManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Agent/AgentManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Claude\\ProcessManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Claude/ProcessManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Claude\\SessionManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Claude/SessionManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Controller\\HealthControllerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Controller/HealthControllerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Conversation/ConversationManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Conversation\\ConversationManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Conversation/ConversationManagerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Epic/EpicManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Epic\\EpicManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Epic/EpicManagerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Item/ItemManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Item\\ItemManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Item/ItemManagerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/Memory/MemoryManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Memory\\MemoryManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Memory/MemoryManagerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Pipeline/PipelineContextTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/Pipeline/PostTaskPipelineTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 3
+			path: tests/Unit/Project/ProjectManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Project\\ProjectManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Project/ProjectManagerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 6
+			path: tests/Unit/Prompts/PromptLoaderTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Prompts\\PromptLoaderTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Prompts/PromptLoaderTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Skills\\SkillRegistryTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Skills/SkillRegistryTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\StateMachine\\TaskManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/StateMachine/TaskManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Storage\\RedisStoreTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Storage/RedisStoreTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Web/TaskNotifierTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Web\\TaskNotifierTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Web/TaskNotifierTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Web/WebAuthManagerTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Web\\WebAuthManagerTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Web/WebAuthManagerTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 4
+			path: tests/Unit/Workflow/TemplateResolverTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array\<string, array\> will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Workflow/TemplateResolverTest.php
+
+		-
+			message: '#^Method Tests\\Unit\\Workflow\\TemplateResolverTest\:\:callMethod\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Workflow/TemplateResolverTest.php

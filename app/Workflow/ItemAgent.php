@@ -15,7 +15,14 @@ use App\StateMachine\TaskManager;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Autonomous background agent that polls for assigned work items and executes them via Claude CLI.
+ *
+ * Builds rich prompts with item, epic, project, and memory context, then monitors task
+ * execution with a 10-minute timeout. Transitions items to REVIEW on success or BLOCKED on failure.
+ */
 class ItemAgent
 {
     #[Inject]
@@ -46,6 +53,7 @@ class ItemAgent
     private LoggerInterface $logger;
 
     private bool $running = false;
+
     private bool $working = false;
 
     public function start(): void
@@ -53,6 +61,7 @@ class ItemAgent
         $enabled = (bool) $this->config->get('mcp.item_agent.enabled', false);
         if (!$enabled) {
             $this->logger->info('ItemAgent: disabled by config');
+
             return;
         }
 
@@ -74,7 +83,7 @@ class ItemAgent
 
             try {
                 $this->tick();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("ItemAgent: tick error: {$e->getMessage()}");
             }
         }
@@ -91,6 +100,7 @@ class ItemAgent
         $assignedItems = $this->itemManager->getAssignedItems('agent');
         $actionable = array_filter($assignedItems, function (array $item) {
             $state = $item['state'] ?? '';
+
             return $state === ItemState::IN_PROGRESS->value;
         });
 
@@ -201,12 +211,13 @@ class ItemAgent
                 $this->itemManager->transition($itemId, ItemState::BLOCKED);
                 $this->logger->warning("ItemAgent: timed out on item {$itemId}");
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error("ItemAgent: error on item {$itemId}: {$e->getMessage()}");
+
             try {
                 $this->itemManager->addNote($itemId, "Agent error: {$e->getMessage()}", 'agent');
                 $this->itemManager->transition($itemId, ItemState::BLOCKED);
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Ignore transition errors in error handler
             }
         } finally {
@@ -229,7 +240,7 @@ class ItemAgent
         // Build context sections
         $itemContext = "## Item\n";
         $itemContext .= "**Title**: {$item['title']}\n";
-        $itemContext .= "**Priority**: " . ($item['priority'] ?? 'normal') . "\n";
+        $itemContext .= '**Priority**: ' . ($item['priority'] ?? 'normal') . "\n";
         if (!empty($item['description'])) {
             $itemContext .= "**Description**: {$item['description']}\n";
         }
@@ -249,7 +260,9 @@ class ItemAgent
                 if (count($siblings) > 1) {
                     $epicContext .= "\n**Other items in this epic**:\n";
                     foreach ($siblings as $sibling) {
-                        if (($sibling['id'] ?? '') === ($item['id'] ?? '')) continue;
+                        if (($sibling['id'] ?? '') === ($item['id'] ?? '')) {
+                            continue;
+                        }
                         $sState = $sibling['state'] ?? 'open';
                         $epicContext .= "- [{$sState}] {$sibling['title']}\n";
                     }
@@ -263,7 +276,7 @@ class ItemAgent
             $project = $this->projectManager->getProject($projectId);
             if ($project) {
                 $projectContext .= "\n## Project\n";
-                $projectContext .= "**Name**: " . ($project['name'] ?? $projectId) . "\n";
+                $projectContext .= '**Name**: ' . ($project['name'] ?? $projectId) . "\n";
                 if (!empty($project['description'])) {
                     $projectContext .= "**Description**: {$project['description']}\n";
                 }
@@ -305,23 +318,23 @@ class ItemAgent
     private function getDefaultPrompt(): string
     {
         return <<<'PROMPT'
-# Item Agent
+            # Item Agent
 
-You are an autonomous agent executing a work item. Complete the described task thoroughly.
+            You are an autonomous agent executing a work item. Complete the described task thoroughly.
 
-{item_context}
-{epic_context}
-{project_context}
-{memory_context}
-{notes_context}
+            {item_context}
+            {epic_context}
+            {project_context}
+            {memory_context}
+            {notes_context}
 
-## Instructions
-1. Read and understand the item requirements
-2. Execute the work described in the item
-3. Report what you accomplished clearly
-4. Note any issues or follow-up work needed
+            ## Instructions
+            1. Read and understand the item requirements
+            2. Execute the work described in the item
+            3. Report what you accomplished clearly
+            4. Note any issues or follow-up work needed
 
-Be thorough but focused. Complete the task as described.
-PROMPT;
+            Be thorough but focused. Complete the task as described.
+            PROMPT;
     }
 }

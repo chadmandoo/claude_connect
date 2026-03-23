@@ -9,6 +9,10 @@ use App\Project\ProjectManager;
 use App\Storage\PostgresStore;
 use Hyperf\Di\Annotation\Inject;
 
+/**
+ * Aggregates memory statistics for the dashboard including totals, embedding coverage,
+ * category breakdowns, age distribution, per-project counts, and nightly run history.
+ */
 class MemoryAnalytics
 {
     #[Inject]
@@ -59,11 +63,15 @@ class MemoryAnalytics
         $workspaces = $this->projectManager->listWorkspaces();
         foreach ($workspaces as $project) {
             $pid = $project['id'] ?? '';
-            if ($pid === '') continue;
+            if ($pid === '') {
+                continue;
+            }
 
             $projectMemories = $this->memoryManager->getProjectMemories($userId, $pid, 10000);
             $count = count($projectMemories);
-            if ($count === 0) continue;
+            if ($count === 0) {
+                continue;
+            }
 
             $totalMemories += $count;
             $projectBreakdown[$project['name'] ?? $pid] = $count;

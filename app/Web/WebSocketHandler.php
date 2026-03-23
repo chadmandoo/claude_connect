@@ -4,32 +4,40 @@ declare(strict_types=1);
 
 namespace App\Web;
 
-use App\StateMachine\TaskManager;
-use App\Memory\MemoryManager;
-use App\Embedding\EmbeddingService;
+use App\Agent\AgentManager;
+use App\Claude\SessionManager;
 use App\Conversation\ConversationManager;
-use App\Project\ProjectManager;
+use App\Embedding\EmbeddingService;
 use App\Epic\EpicManager;
 use App\Epic\EpicState;
 use App\Item\ItemManager;
-use App\Item\ItemState;
 use App\Item\ItemPriority;
+use App\Item\ItemState;
+use App\Memory\MemoryManager;
 use App\Note\NoteManager;
-use App\Todo\TodoManager;
-use App\Claude\SessionManager;
+use App\Project\ProjectManager;
 use App\Scheduler\SchedulerManager;
-use App\Agent\AgentManager;
-use App\Storage\SwooleTableCache;
+use App\StateMachine\TaskManager;
 use App\Storage\PostgresStore;
 use App\Storage\RedisStore;
+use App\Storage\SwooleTableCache;
+use App\Todo\TodoManager;
+use DateTime;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Swoole\Http\Request;
-use Swoole\Http\Response;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
+use Throwable;
 
+/**
+ * Swoole WebSocket server handler managing connection lifecycle and message routing.
+ *
+ * Handles open/close/message events, authenticates connections, dispatches incoming
+ * JSON messages to appropriate managers (chat, memory, project, epic, item, todo,
+ * notes, scheduler, agents), and manages heartbeat ping/pong.
+ */
 class WebSocketHandler
 {
     #[Inject]
@@ -93,6 +101,7 @@ class WebSocketHandler
     private LoggerInterface $logger;
 
     private int $pingInterval = 30;
+
     private ?Server $serverInstance = null;
 
     /**
@@ -134,6 +143,7 @@ class WebSocketHandler
 
         if (!is_array($data) || !isset($data['type'])) {
             $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Invalid message format']);
+
             return;
         }
 
@@ -142,12 +152,14 @@ class WebSocketHandler
         // Auth message can be sent without being authenticated
         if ($type === 'auth') {
             $this->handleAuth($server, $fd, $data);
+
             return;
         }
 
         // Pong: update last-seen timestamp
         if ($type === 'pong') {
             $this->cache->updateWsConnectionPong($fd);
+
             return;
         }
 
@@ -155,6 +167,7 @@ class WebSocketHandler
         $conn = $this->cache->getWsConnection($fd);
         if (!$conn) {
             $this->pushJson($server, $fd, ['type' => 'auth.required']);
+
             return;
         }
 
@@ -162,7 +175,7 @@ class WebSocketHandler
         \Swoole\Coroutine::create(function () use ($server, $fd, $type, $data) {
             try {
                 $this->dispatch($server, $fd, $type, $data);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("WebSocket dispatch error: {$e->getMessage()}");
                 $this->pushJson($server, $fd, [
                     'type' => 'error',
@@ -190,6 +203,7 @@ class WebSocketHandler
 
         if ($token === null) {
             $this->pushJson($server, $fd, ['type' => 'auth.error', 'error' => 'Invalid password']);
+
             return;
         }
 
@@ -213,6 +227,7 @@ class WebSocketHandler
                 $prompt = trim($data['prompt'] ?? '');
                 if ($prompt === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Empty prompt']);
+
                     return;
                 }
                 // Validate images: array of {data: base64, media_type: string}
@@ -250,6 +265,7 @@ class WebSocketHandler
                 // Filter out internal system tasks
                 $tasks = array_values(array_filter($allTasks, function (array $task) {
                     $source = $task['source'] ?? ($task['conversation_id'] ?? '' !== '' ? 'web' : 'system');
+
                     return $source === 'web';
                 }));
                 $tasks = array_slice($tasks, 0, $limit);
@@ -280,11 +296,13 @@ class WebSocketHandler
                 $taskId = $data['task_id'] ?? '';
                 if ($taskId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing task_id']);
+
                     return;
                 }
                 $task = $this->taskManager->getTask($taskId);
                 if (!$task) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Task not found']);
+
                     return;
                 }
                 $this->pushJson($server, $fd, [
@@ -312,12 +330,14 @@ class WebSocketHandler
                 $memoryId = $data['memory_id'] ?? '';
                 if ($memoryId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing memory_id']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
                 $memory = $this->memoryManager->getMemory($userId, $memoryId);
                 if ($memory === null) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Memory not found']);
+
                     return;
                 }
                 $this->pushJson($server, $fd, [
@@ -357,6 +377,7 @@ class WebSocketHandler
                 $memoryId = $data['memory_id'] ?? '';
                 if ($memoryId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing memory_id']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -364,11 +385,21 @@ class WebSocketHandler
                 $existingMem = $this->memoryManager->getMemory($userId, $memoryId);
                 $currentProjectId = $existingMem['project_id'] ?? null;
                 $updateData = [];
-                if (isset($data['content'])) $updateData['content'] = $data['content'];
-                if (isset($data['importance'])) $updateData['importance'] = $data['importance'];
-                if (isset($data['category'])) $updateData['category'] = $data['category'];
-                if (isset($data['memory_type'])) $updateData['type'] = $data['memory_type'];
-                if (isset($data['agent_scope'])) $updateData['agent_scope'] = $data['agent_scope'];
+                if (isset($data['content'])) {
+                    $updateData['content'] = $data['content'];
+                }
+                if (isset($data['importance'])) {
+                    $updateData['importance'] = $data['importance'];
+                }
+                if (isset($data['category'])) {
+                    $updateData['category'] = $data['category'];
+                }
+                if (isset($data['memory_type'])) {
+                    $updateData['type'] = $data['memory_type'];
+                }
+                if (isset($data['agent_scope'])) {
+                    $updateData['agent_scope'] = $data['agent_scope'];
+                }
                 // Allow changing the project scope
                 if (array_key_exists('project_id', $data)) {
                     $newProjectId = $data['project_id'];
@@ -388,6 +419,7 @@ class WebSocketHandler
                 $query = trim($data['query'] ?? '');
                 if ($query === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing query']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -396,6 +428,7 @@ class WebSocketHandler
 
                 if (!$this->embeddingService->isAvailable()) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Semantic search not configured (VOYAGE_API_KEY missing)']);
+
                     return;
                 }
 
@@ -419,6 +452,7 @@ class WebSocketHandler
                 $memoryId = $data['memory_id'] ?? '';
                 if ($memoryId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing memory_id']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -434,6 +468,7 @@ class WebSocketHandler
                 $content = trim($data['content'] ?? '');
                 if ($content === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing content']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -444,11 +479,24 @@ class WebSocketHandler
                 $memProjectId = $data['project_id'] ?? null;
                 if ($memProjectId && $memProjectId !== '' && $memProjectId !== 'general') {
                     $memoryId = $this->memoryManager->storeProjectMemory(
-                        $userId, $memProjectId, $category, $content, $importance, 'web', $memType, $agentScope
+                        $userId,
+                        $memProjectId,
+                        $category,
+                        $content,
+                        $importance,
+                        'web',
+                        $memType,
+                        $agentScope,
                     );
                 } else {
                     $memoryId = $this->memoryManager->storeMemory(
-                        $userId, $category, $content, $importance, 'web', $memType, $agentScope
+                        $userId,
+                        $category,
+                        $content,
+                        $importance,
+                        'web',
+                        $memType,
+                        $agentScope,
                     );
                 }
                 $this->pushJson($server, $fd, [
@@ -465,16 +513,20 @@ class WebSocketHandler
                 $typeFilter = $data['conv_type'] ?? null;
                 $conversations = $this->conversationManager->listConversations(
                     $projectId !== '' ? $projectId : null,
-                    $limit
+                    $limit,
                 );
                 if (!$showArchived) {
-                    $conversations = array_values(array_filter($conversations, fn(array $c) =>
-                        ($c['state'] ?? 'active') === 'active'
+                    $conversations = array_values(array_filter(
+                        $conversations,
+                        fn (array $c) =>
+                        ($c['state'] ?? 'active') === 'active',
                     ));
                 }
                 if ($typeFilter !== null && $typeFilter !== '') {
-                    $conversations = array_values(array_filter($conversations, fn(array $c) =>
-                        ($c['type'] ?? '') === $typeFilter
+                    $conversations = array_values(array_filter(
+                        $conversations,
+                        fn (array $c) =>
+                        ($c['type'] ?? '') === $typeFilter,
                     ));
                 }
                 $this->pushJson($server, $fd, [
@@ -488,11 +540,13 @@ class WebSocketHandler
                 $convId = $data['conversation_id'] ?? '';
                 if ($convId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing conversation_id']);
+
                     return;
                 }
                 $conv = $this->conversationManager->getConversation($convId);
                 if (!$conv) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Conversation not found']);
+
                     return;
                 }
                 $turns = $this->conversationManager->getConversationTurns($convId);
@@ -508,6 +562,7 @@ class WebSocketHandler
                 $convId = $data['conversation_id'] ?? '';
                 if ($convId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing conversation_id']);
+
                     return;
                 }
                 $convUpdate = [];
@@ -529,6 +584,7 @@ class WebSocketHandler
                 $convId = $data['conversation_id'] ?? '';
                 if ($convId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing conversation_id']);
+
                     return;
                 }
                 $this->conversationManager->completeConversation($convId);
@@ -544,6 +600,7 @@ class WebSocketHandler
                 $stripped = array_map(function (array $p) {
                     $pid = $p['id'] ?? '';
                     $itemCounts = $pid !== '' ? $this->itemManager->getProjectItemCounts($pid) : [];
+
                     return [
                         'id' => $pid,
                         'name' => $p['name'] ?? $p['goal'] ?? 'Unnamed',
@@ -567,11 +624,13 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $project = $this->projectManager->getProject($projectId);
                 if (!$project) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Project not found']);
+
                     return;
                 }
                 $itemCounts = $this->itemManager->getProjectItemCounts($projectId);
@@ -598,11 +657,13 @@ class WebSocketHandler
                 $projectName = trim($data['name'] ?? '');
                 if ($projectName === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project name']);
+
                     return;
                 }
                 $existing = $this->projectManager->getByName($projectName);
                 if ($existing) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => "Project '{$projectName}' already exists"]);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -624,17 +685,25 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $project = $this->projectManager->getProject($projectId);
                 if (!$project) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Project not found']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['name'])) $updateData['name'] = $data['name'];
-                if (isset($data['description'])) $updateData['description'] = $data['description'];
-                if (isset($data['cwd'])) $updateData['cwd'] = $data['cwd'];
+                if (isset($data['name'])) {
+                    $updateData['name'] = $data['name'];
+                }
+                if (isset($data['description'])) {
+                    $updateData['description'] = $data['description'];
+                }
+                if (isset($data['cwd'])) {
+                    $updateData['cwd'] = $data['cwd'];
+                }
                 if (array_key_exists('default_agent_id', $data)) {
                     $updateData['default_agent_id'] = $data['default_agent_id'] ?: null;
                 }
@@ -654,16 +723,19 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $project = $this->projectManager->getProject($projectId);
                 if (!$project) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Project not found']);
+
                     return;
                 }
                 $projectName = $project['name'] ?? $project['goal'] ?? '';
                 if (strtolower($projectName) === 'general') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Cannot delete the General project']);
+
                     return;
                 }
                 // Delete all epics and items in the project
@@ -688,16 +760,19 @@ class WebSocketHandler
                 $taskId = $data['task_id'] ?? '';
                 if ($taskId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing task_id']);
+
                     return;
                 }
                 $task = $this->taskManager->getTask($taskId);
                 if (!$task) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Task not found']);
+
                     return;
                 }
                 $taskState = $task['state'] ?? '';
                 if ($taskState === 'running' || $taskState === 'pending') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Cannot delete a ' . $taskState . ' task']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -714,11 +789,13 @@ class WebSocketHandler
                 $convId = $data['conversation_id'] ?? '';
                 if ($convId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing conversation_id']);
+
                     return;
                 }
                 $conv = $this->conversationManager->getConversation($convId);
                 if (!$conv) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Conversation not found']);
+
                     return;
                 }
                 $this->conversationManager->completeConversation($convId);
@@ -733,6 +810,7 @@ class WebSocketHandler
                 $convId = $data['conversation_id'] ?? '';
                 if ($convId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing conversation_id']);
+
                     return;
                 }
                 $this->conversationManager->deleteConversation($convId);
@@ -747,6 +825,7 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $this->epicManager->ensureBacklogEpic($projectId);
@@ -765,6 +844,7 @@ class WebSocketHandler
                     $epic['progress'] = $total > 0
                         ? round(($counts['done'] + $counts['cancelled']) / $total * 100)
                         : 0;
+
                     return $epic;
                 }, $epics);
                 $this->pushJson($server, $fd, [
@@ -778,11 +858,13 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $title = trim($data['title'] ?? '');
                 if ($title === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing title']);
+
                     return;
                 }
                 $epicId = $this->epicManager->createEpic(
@@ -802,16 +884,22 @@ class WebSocketHandler
                 $epicId = $data['epic_id'] ?? '';
                 if ($epicId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing epic_id']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['title'])) $updateData['title'] = $data['title'];
-                if (isset($data['description'])) $updateData['description'] = $data['description'];
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+                if (isset($data['description'])) {
+                    $updateData['description'] = $data['description'];
+                }
 
                 if (isset($data['state'])) {
                     $targetState = EpicState::tryFrom($data['state']);
                     if ($targetState === null) {
                         $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Invalid epic state']);
+
                         return;
                     }
                     $this->epicManager->transition($epicId, $targetState);
@@ -834,11 +922,13 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $epicIds = $data['epic_ids'] ?? [];
                 if (!is_array($epicIds) || empty($epicIds)) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing epic_ids array']);
+
                     return;
                 }
                 foreach ($epicIds as $i => $eid) {
@@ -861,11 +951,13 @@ class WebSocketHandler
                 $epicId = $data['epic_id'] ?? '';
                 if ($epicId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing epic_id']);
+
                     return;
                 }
                 $epic = $this->epicManager->getEpic($epicId);
                 if (!$epic) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Epic not found']);
+
                     return;
                 }
                 $this->epicManager->deleteEpic($epicId, $epic['project_id']);
@@ -887,6 +979,7 @@ class WebSocketHandler
                     $items = $this->itemManager->listItemsByProject($projectId, $stateFilter !== '' ? $stateFilter : null);
                 } else {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id or epic_id']);
+
                     return;
                 }
                 $this->pushJson($server, $fd, [
@@ -900,11 +993,13 @@ class WebSocketHandler
                 $projectId = $data['project_id'] ?? '';
                 if ($projectId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing project_id']);
+
                     return;
                 }
                 $title = trim($data['title'] ?? '');
                 if ($title === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing title']);
+
                     return;
                 }
                 $priority = $data['priority'] ?? 'normal';
@@ -932,11 +1027,16 @@ class WebSocketHandler
                 $itemId = $data['item_id'] ?? '';
                 if ($itemId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['title'])) $updateData['title'] = $data['title'];
-                if (isset($data['description'])) $updateData['description'] = $data['description'];
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+                if (isset($data['description'])) {
+                    $updateData['description'] = $data['description'];
+                }
                 if (isset($data['priority'])) {
                     if (ItemPriority::tryFrom($data['priority']) !== null) {
                         $updateData['priority'] = $data['priority'];
@@ -947,6 +1047,7 @@ class WebSocketHandler
                     $targetState = ItemState::tryFrom($data['state']);
                     if ($targetState === null) {
                         $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Invalid item state']);
+
                         return;
                     }
                     $this->itemManager->transition($itemId, $targetState);
@@ -970,6 +1071,7 @@ class WebSocketHandler
                 $epicId = $data['epic_id'] ?? '';
                 if ($itemId === '' || $epicId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id or epic_id']);
+
                     return;
                 }
                 $this->itemManager->moveToEpic($itemId, $epicId);
@@ -986,11 +1088,13 @@ class WebSocketHandler
                 $epicId = $data['epic_id'] ?? '';
                 if ($epicId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing epic_id']);
+
                     return;
                 }
                 $itemIds = $data['item_ids'] ?? [];
                 if (!is_array($itemIds) || empty($itemIds)) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_ids array']);
+
                     return;
                 }
                 foreach ($itemIds as $i => $iid) {
@@ -1010,11 +1114,13 @@ class WebSocketHandler
                 $itemId = $data['item_id'] ?? '';
                 if ($itemId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id']);
+
                     return;
                 }
                 $item = $this->itemManager->getItem($itemId);
                 if (!$item) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Item not found']);
+
                     return;
                 }
                 $this->itemManager->deleteItem($itemId);
@@ -1033,7 +1139,7 @@ class WebSocketHandler
                 $nightlyConfig = $configService->get('mcp.nightly', []);
                 $runHour = $nightlyConfig['run_hour'] ?? 2;
                 $runMinute = $nightlyConfig['run_minute'] ?? 0;
-                $nextRun = new \DateTime('today ' . sprintf('%02d:%02d', $runHour, $runMinute));
+                $nextRun = new DateTime('today ' . sprintf('%02d:%02d', $runHour, $runMinute));
                 if ($nextRun->getTimestamp() <= time()) {
                     $nextRun->modify('+1 day');
                 }
@@ -1062,6 +1168,7 @@ class WebSocketHandler
                 $itemId = $data['item_id'] ?? '';
                 if ($itemId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id']);
+
                     return;
                 }
                 $notes = $this->store->getItemNotes($itemId);
@@ -1078,6 +1185,7 @@ class WebSocketHandler
                 $noteContent = trim($data['content'] ?? '');
                 if ($itemId === '' || $noteContent === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id or content']);
+
                     return;
                 }
                 $userId = $this->authManager->getUserId();
@@ -1094,6 +1202,7 @@ class WebSocketHandler
                 $assignee = $data['assignee'] ?? '';
                 if ($itemId === '' || $assignee === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id or assignee']);
+
                     return;
                 }
                 $this->itemManager->assignItem($itemId, $assignee);
@@ -1116,7 +1225,7 @@ class WebSocketHandler
                 ]);
                 break;
 
-            // conversations.detail is an alias for conversations.get for the new React frontend
+                // conversations.detail is an alias for conversations.get for the new React frontend
             case 'conversations.detail':
                 // Forward to conversations.get handler
                 $this->dispatch($server, $fd, 'conversations.get', $data);
@@ -1141,6 +1250,7 @@ class WebSocketHandler
                 $channelDesc = trim($data['description'] ?? '');
                 if ($channelName === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Channel name required']);
+
                     return;
                 }
                 $channelId = uniqid('ch_', true);
@@ -1171,11 +1281,13 @@ class WebSocketHandler
                 $channelId = $data['channel_id'] ?? '';
                 if ($channelId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing channel_id']);
+
                     return;
                 }
                 $channel = $this->store->getChannel($channelId);
                 if (!$channel) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Channel not found']);
+
                     return;
                 }
                 $channelMessages = $this->store->getChannelMessages($channelId);
@@ -1194,6 +1306,7 @@ class WebSocketHandler
                 $content = trim($data['content'] ?? '');
                 if ($channelId === '' || $content === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing channel_id or content']);
+
                     return;
                 }
                 $conn = $this->cache->getWsConnection($fd);
@@ -1215,8 +1328,8 @@ class WebSocketHandler
                 // Broadcast to other connections
                 $allConns = $this->cache->getWsConnections();
                 foreach ($allConns as $otherFd => $otherConn) {
-                    if ((int)$otherFd !== $fd && $server->isEstablished((int)$otherFd)) {
-                        $this->pushJson($server, (int)$otherFd, [
+                    if ((int) $otherFd !== $fd && $server->isEstablished((int) $otherFd)) {
+                        $this->pushJson($server, (int) $otherFd, [
                             'type' => 'channels.message',
                             'channel_id' => $channelId,
                             'message' => $message,
@@ -1250,7 +1363,7 @@ class WebSocketHandler
                     \Swoole\Coroutine::create(function () use ($server, $channelId, $content, $channelName, $agentForReply) {
                         try {
                             $this->chatManager->sendRoomAgentReply($server, $channelId, $content, $channelName, $agentForReply);
-                        } catch (\Throwable $e) {
+                        } catch (Throwable $e) {
                             $this->logger->error("Channel agent reply failed: {$e->getMessage()}");
                         }
                     });
@@ -1261,11 +1374,13 @@ class WebSocketHandler
                 $channelId = $data['channel_id'] ?? '';
                 if ($channelId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing channel_id']);
+
                     return;
                 }
                 $channel = $this->store->getChannel($channelId);
                 if (!$channel) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Channel not found']);
+
                     return;
                 }
                 if (isset($data['name']) && trim($data['name']) !== '') {
@@ -1287,6 +1402,7 @@ class WebSocketHandler
                 $channelId = $data['channel_id'] ?? '';
                 if ($channelId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing channel_id']);
+
                     return;
                 }
                 $this->store->deleteChannel($channelId);
@@ -1311,6 +1427,7 @@ class WebSocketHandler
                 $enabled = (bool) ($data['enabled'] ?? false);
                 if ($jobId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing job_id']);
+
                     return;
                 }
                 $success = $this->schedulerManager->toggleJob($jobId, $enabled);
@@ -1336,6 +1453,7 @@ class WebSocketHandler
                 $jobId = $data['job_id'] ?? '';
                 if ($jobId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing job_id']);
+
                     return;
                 }
                 $this->schedulerManager->deleteJob($jobId);
@@ -1346,9 +1464,9 @@ class WebSocketHandler
                 ]);
                 break;
 
-            // =====================================================================
-            // System Docs
-            // =====================================================================
+                // =====================================================================
+                // System Docs
+                // =====================================================================
 
             case 'docs.list':
                 $docsDir = BASE_PATH . '/docs';
@@ -1371,7 +1489,7 @@ class WebSocketHandler
                             'updated_at' => filemtime($file),
                         ];
                     }
-                    usort($docFiles, fn($a, $b) => strcmp($a['title'], $b['title']));
+                    usort($docFiles, fn ($a, $b) => strcmp($a['title'], $b['title']));
                 }
                 $this->pushJson($server, $fd, [
                     'type' => 'docs.list',
@@ -1384,11 +1502,13 @@ class WebSocketHandler
                 $slug = $data['slug'] ?? '';
                 if ($slug === '' || preg_match('/[\/\\\\.]/', $slug)) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Invalid slug']);
+
                     return;
                 }
                 $filePath = BASE_PATH . '/docs/' . $slug . '.md';
                 if (!is_file($filePath)) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Document not found']);
+
                     return;
                 }
                 $content = file_get_contents($filePath);
@@ -1408,9 +1528,9 @@ class WebSocketHandler
                 ]);
                 break;
 
-            // =====================================================================
-            // Agent CRUD
-            // =====================================================================
+                // =====================================================================
+                // Agent CRUD
+                // =====================================================================
 
             case 'agents.list':
                 $agentProjectId = $data['project_id'] ?? null;
@@ -1426,11 +1546,13 @@ class WebSocketHandler
                 $agentId = $data['agent_id'] ?? '';
                 if ($agentId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing agent_id']);
+
                     return;
                 }
                 $agent = $this->agentManager->getAgent($agentId);
                 if (!$agent) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Agent not found']);
+
                     return;
                 }
                 $this->pushJson($server, $fd, [
@@ -1445,8 +1567,10 @@ class WebSocketHandler
                 $name = trim($data['name'] ?? '');
                 if ($slug === '' || $name === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing slug or name']);
+
                     return;
                 }
+
                 try {
                     $agentId = $this->agentManager->createAgent([
                         'slug' => $slug,
@@ -1467,7 +1591,7 @@ class WebSocketHandler
                         'id' => $data['id'] ?? null,
                         'agent' => $agent,
                     ]);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => $e->getMessage()]);
                 }
                 break;
@@ -1476,8 +1600,10 @@ class WebSocketHandler
                 $agentId = $data['agent_id'] ?? '';
                 if ($agentId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing agent_id']);
+
                     return;
                 }
+
                 try {
                     $updateFields = [];
                     foreach (['slug', 'name', 'description', 'system_prompt', 'model', 'tool_access', 'project_id', 'memory_scope', 'is_default', 'color', 'icon'] as $field) {
@@ -1492,7 +1618,7 @@ class WebSocketHandler
                         'id' => $data['id'] ?? null,
                         'agent' => $agent,
                     ]);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => $e->getMessage()]);
                 }
                 break;
@@ -1501,8 +1627,10 @@ class WebSocketHandler
                 $agentId = $data['agent_id'] ?? '';
                 if ($agentId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing agent_id']);
+
                     return;
                 }
+
                 try {
                     $this->agentManager->deleteAgent($agentId);
                     $this->pushJson($server, $fd, [
@@ -1510,7 +1638,7 @@ class WebSocketHandler
                         'id' => $data['id'] ?? null,
                         'agent_id' => $agentId,
                     ]);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => $e->getMessage()]);
                 }
                 break;
@@ -1524,15 +1652,16 @@ class WebSocketHandler
                 ]);
                 break;
 
-            // =====================================================================
-            // Room agent management
-            // =====================================================================
+                // =====================================================================
+                // Room agent management
+                // =====================================================================
 
             case 'rooms.add_agent':
                 $roomId = $data['room_id'] ?? $data['channel_id'] ?? '';
                 $agentId = $data['agent_id'] ?? '';
                 if ($roomId === '' || $agentId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing room_id or agent_id']);
+
                     return;
                 }
                 $this->agentManager->addAgentToRoom($roomId, $agentId, (bool) ($data['is_default'] ?? false));
@@ -1549,6 +1678,7 @@ class WebSocketHandler
                 $agentId = $data['agent_id'] ?? '';
                 if ($roomId === '' || $agentId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing room_id or agent_id']);
+
                     return;
                 }
                 $this->agentManager->removeAgentFromRoom($roomId, $agentId);
@@ -1565,6 +1695,7 @@ class WebSocketHandler
                 $agentId = $data['agent_id'] ?? '';
                 if ($roomId === '' || $agentId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'id' => $data['id'] ?? null, 'error' => 'Missing room_id or agent_id']);
+
                     return;
                 }
                 $this->agentManager->setRoomDefaultAgent($roomId, $agentId);
@@ -1576,9 +1707,9 @@ class WebSocketHandler
                 ]);
                 break;
 
-            // =====================================================================
-            // Notebooks & Pages (Notes)
-            // =====================================================================
+                // =====================================================================
+                // Notebooks & Pages (Notes)
+                // =====================================================================
 
             case 'notebooks.list':
                 $notebooks = $this->noteManager->listNotebooks();
@@ -1599,6 +1730,7 @@ class WebSocketHandler
                 $title = trim($data['title'] ?? '');
                 if ($title === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing title']);
+
                     return;
                 }
                 $notebookId = $this->noteManager->createNotebook(
@@ -1620,13 +1752,22 @@ class WebSocketHandler
                 $notebookId = $data['notebook_id'] ?? '';
                 if ($notebookId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing notebook_id']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['title'])) $updateData['title'] = $data['title'];
-                if (isset($data['description'])) $updateData['description'] = $data['description'];
-                if (isset($data['color'])) $updateData['color'] = $data['color'];
-                if (isset($data['icon'])) $updateData['icon'] = $data['icon'];
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+                if (isset($data['description'])) {
+                    $updateData['description'] = $data['description'];
+                }
+                if (isset($data['color'])) {
+                    $updateData['color'] = $data['color'];
+                }
+                if (isset($data['icon'])) {
+                    $updateData['icon'] = $data['icon'];
+                }
                 if (!empty($updateData)) {
                     $this->noteManager->updateNotebook($notebookId, $updateData);
                 }
@@ -1642,6 +1783,7 @@ class WebSocketHandler
                 $notebookId = $data['notebook_id'] ?? '';
                 if ($notebookId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing notebook_id']);
+
                     return;
                 }
                 $this->noteManager->deleteNotebook($notebookId);
@@ -1656,6 +1798,7 @@ class WebSocketHandler
                 $notebookId = $data['notebook_id'] ?? '';
                 if ($notebookId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing notebook_id']);
+
                     return;
                 }
                 $pages = $this->noteManager->listPages($notebookId);
@@ -1671,11 +1814,13 @@ class WebSocketHandler
                 $pageId = $data['page_id'] ?? '';
                 if ($pageId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing page_id']);
+
                     return;
                 }
                 $page = $this->noteManager->getPage($pageId);
                 if (!$page) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Page not found']);
+
                     return;
                 }
                 $this->pushJson($server, $fd, [
@@ -1689,6 +1834,7 @@ class WebSocketHandler
                 $notebookId = $data['notebook_id'] ?? '';
                 if ($notebookId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing notebook_id']);
+
                     return;
                 }
                 $title = trim($data['title'] ?? '');
@@ -1712,12 +1858,19 @@ class WebSocketHandler
                 $pageId = $data['page_id'] ?? '';
                 if ($pageId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing page_id']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['title'])) $updateData['title'] = $data['title'];
-                if (isset($data['content'])) $updateData['content'] = $data['content'];
-                if (isset($data['pinned'])) $updateData['pinned'] = $data['pinned'];
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+                if (isset($data['content'])) {
+                    $updateData['content'] = $data['content'];
+                }
+                if (isset($data['pinned'])) {
+                    $updateData['pinned'] = $data['pinned'];
+                }
                 if (!empty($updateData)) {
                     $this->noteManager->updatePage($pageId, $updateData);
                 }
@@ -1734,6 +1887,7 @@ class WebSocketHandler
                 $targetNotebookId = $data['notebook_id'] ?? '';
                 if ($pageId === '' || $targetNotebookId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing page_id or notebook_id']);
+
                     return;
                 }
                 $this->noteManager->movePage($pageId, $targetNotebookId);
@@ -1749,11 +1903,13 @@ class WebSocketHandler
                 $pageId = $data['page_id'] ?? '';
                 if ($pageId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing page_id']);
+
                     return;
                 }
                 $page = $this->noteManager->getPage($pageId);
                 if (!$page) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Page not found']);
+
                     return;
                 }
                 $notebookId = $page['notebook_id'] ?? '';
@@ -1766,9 +1922,9 @@ class WebSocketHandler
                 ]);
                 break;
 
-            // =====================================================================
-            // Todo Sections & Items
-            // =====================================================================
+                // =====================================================================
+                // Todo Sections & Items
+                // =====================================================================
 
             case 'todos.list':
                 $sections = $this->todoManager->listSections();
@@ -1790,6 +1946,7 @@ class WebSocketHandler
                 $title = trim($data['title'] ?? '');
                 if ($title === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing title']);
+
                     return;
                 }
                 $sectionId = $this->todoManager->createSection($title, $data['color'] ?? 'slate');
@@ -1807,12 +1964,19 @@ class WebSocketHandler
                 $sectionId = $data['section_id'] ?? '';
                 if ($sectionId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing section_id']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['title'])) $updateData['title'] = $data['title'];
-                if (isset($data['color'])) $updateData['color'] = $data['color'];
-                if (isset($data['collapsed'])) $updateData['collapsed'] = $data['collapsed'];
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+                if (isset($data['color'])) {
+                    $updateData['color'] = $data['color'];
+                }
+                if (isset($data['collapsed'])) {
+                    $updateData['collapsed'] = $data['collapsed'];
+                }
                 if (!empty($updateData)) {
                     $this->todoManager->updateSection($sectionId, $updateData);
                 }
@@ -1828,6 +1992,7 @@ class WebSocketHandler
                 $sectionId = $data['section_id'] ?? '';
                 if ($sectionId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing section_id']);
+
                     return;
                 }
                 $this->todoManager->deleteSection($sectionId);
@@ -1842,6 +2007,7 @@ class WebSocketHandler
                 $sectionIds = $data['section_ids'] ?? [];
                 if (!is_array($sectionIds) || empty($sectionIds)) {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing section_ids']);
+
                     return;
                 }
                 $this->todoManager->reorderSections($sectionIds);
@@ -1855,11 +2021,13 @@ class WebSocketHandler
                 $sectionId = $data['section_id'] ?? '';
                 if ($sectionId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing section_id']);
+
                     return;
                 }
                 $title = trim($data['title'] ?? '');
                 if ($title === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing title']);
+
                     return;
                 }
                 $itemId = $this->todoManager->createItem(
@@ -1881,13 +2049,22 @@ class WebSocketHandler
                 $itemId = $data['item_id'] ?? '';
                 if ($itemId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id']);
+
                     return;
                 }
                 $updateData = [];
-                if (isset($data['title'])) $updateData['title'] = $data['title'];
-                if (isset($data['note'])) $updateData['note'] = $data['note'];
-                if (isset($data['priority'])) $updateData['priority'] = $data['priority'];
-                if (isset($data['due_date'])) $updateData['due_date'] = (int) $data['due_date'];
+                if (isset($data['title'])) {
+                    $updateData['title'] = $data['title'];
+                }
+                if (isset($data['note'])) {
+                    $updateData['note'] = $data['note'];
+                }
+                if (isset($data['priority'])) {
+                    $updateData['priority'] = $data['priority'];
+                }
+                if (isset($data['due_date'])) {
+                    $updateData['due_date'] = (int) $data['due_date'];
+                }
                 if (!empty($updateData)) {
                     $this->todoManager->updateItem($itemId, $updateData);
                 }
@@ -1903,6 +2080,7 @@ class WebSocketHandler
                 $itemId = $data['item_id'] ?? '';
                 if ($itemId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id']);
+
                     return;
                 }
                 $newDone = $this->todoManager->toggleItem($itemId);
@@ -1919,6 +2097,7 @@ class WebSocketHandler
                 $itemId = $data['item_id'] ?? '';
                 if ($itemId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id']);
+
                     return;
                 }
                 $item = $this->todoManager->getItem($itemId);
@@ -1937,6 +2116,7 @@ class WebSocketHandler
                 $targetSectionId = $data['section_id'] ?? '';
                 if ($itemId === '' || $targetSectionId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing item_id or section_id']);
+
                     return;
                 }
                 $this->todoManager->moveItem($itemId, $targetSectionId);
@@ -1952,6 +2132,7 @@ class WebSocketHandler
                 $sectionId = $data['section_id'] ?? '';
                 if ($sectionId === '') {
                     $this->pushJson($server, $fd, ['type' => 'error', 'error' => 'Missing section_id']);
+
                     return;
                 }
                 $cleared = $this->todoManager->clearCompleted($sectionId);
@@ -2011,6 +2192,7 @@ class WebSocketHandler
         if ($this->serverInstance === null) {
             $this->serverInstance = \Hyperf\Context\ApplicationContext::getContainer()->get(\Swoole\Server::class);
         }
+
         return $this->serverInstance;
     }
 
@@ -2020,7 +2202,7 @@ class WebSocketHandler
             if ($server->isEstablished($fd)) {
                 $server->push($fd, json_encode($data));
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->debug("WebSocket push failed for fd={$fd}: {$e->getMessage()}");
         }
     }

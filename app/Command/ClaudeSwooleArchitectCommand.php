@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Prompts\PromptLoader;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
+use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 
+/**
+ * CLI command `claude-swoole-architect` to launch an interactive Claude CLI session
+ * with the architect system prompt for full codebase access.
+ */
 #[Command]
 class ClaudeSwooleArchitectCommand extends HyperfCommand
 {
@@ -31,6 +35,7 @@ class ClaudeSwooleArchitectCommand extends HyperfCommand
         $prompt = $promptLoader->load('architect');
         if ($prompt === '') {
             $this->error('Failed to load architect prompt.');
+
             return;
         }
 
@@ -55,6 +60,7 @@ class ClaudeSwooleArchitectCommand extends HyperfCommand
 
         if (!is_resource($process)) {
             $this->error('Failed to start Claude CLI process.');
+
             return;
         }
 

@@ -7,7 +7,14 @@ namespace App\Embedding;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * HTTP client for the Voyage AI embeddings API.
+ *
+ * Handles single document, batch, and asymmetric query embeddings with
+ * automatic chunking for large batches and cost estimation.
+ */
 class VoyageClient
 {
     private const API_URL = 'https://api.voyageai.com/v1/embeddings';
@@ -43,6 +50,7 @@ class VoyageClient
     public function embed(string $text): ?array
     {
         $result = $this->callApi([$text], 'document');
+
         return $result[0] ?? null;
     }
 
@@ -50,6 +58,7 @@ class VoyageClient
      * Embed a batch of document strings.
      *
      * @param string[] $texts
+     *
      * @return array<int, float[]> Indexed array of vectors (same order as input)
      */
     public function embedBatch(array $texts): array
@@ -82,6 +91,7 @@ class VoyageClient
     public function embedQuery(string $query): ?array
     {
         $result = $this->callApi([$query], 'query');
+
         return $result[0] ?? null;
     }
 
@@ -116,12 +126,13 @@ class VoyageClient
 
             if (!isset($body['data']) || !is_array($body['data'])) {
                 $this->logger->error('VoyageClient: unexpected response format');
+
                 return null;
             }
 
             // Sort by index to ensure order matches input
             $data = $body['data'];
-            usort($data, fn($a, $b) => ($a['index'] ?? 0) <=> ($b['index'] ?? 0));
+            usort($data, fn ($a, $b) => ($a['index'] ?? 0) <=> ($b['index'] ?? 0));
 
             $vectors = [];
             foreach ($data as $item) {
@@ -130,14 +141,16 @@ class VoyageClient
 
             $usage = $body['usage'] ?? [];
             $tokens = $usage['total_tokens'] ?? 0;
-            $this->logger->debug("VoyageClient: embedded " . count($texts) . " text(s), {$tokens} tokens");
+            $this->logger->debug('VoyageClient: embedded ' . count($texts) . " text(s), {$tokens} tokens");
 
             return $vectors;
         } catch (GuzzleException $e) {
             $this->logger->error("VoyageClient: API call failed: {$e->getMessage()}");
+
             return null;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error("VoyageClient: unexpected error: {$e->getMessage()}");
+
             return null;
         }
     }

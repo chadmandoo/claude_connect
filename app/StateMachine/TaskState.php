@@ -6,11 +6,6 @@ namespace App\StateMachine;
 
 enum TaskState: string
 {
-    case PENDING = 'pending';
-    case RUNNING = 'running';
-    case COMPLETED = 'completed';
-    case FAILED = 'failed';
-
     /**
      * Returns the valid states this state can transition to.
      */
@@ -36,4 +31,8 @@ enum TaskState: string
             default => false,
         };
     }
+    case PENDING = 'pending';
+    case RUNNING = 'running';
+    case COMPLETED = 'completed';
+    case FAILED = 'failed';
 }

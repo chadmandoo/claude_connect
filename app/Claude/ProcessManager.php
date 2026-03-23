@@ -4,23 +4,33 @@ declare(strict_types=1);
 
 namespace App\Claude;
 
-use App\StateMachine\TaskManager;
-use App\StateMachine\TaskState;
-use App\Memory\MemoryManager;
-use App\Item\ItemManager;
-use App\Epic\EpicManager;
-use App\Agent\AgentPromptBuilder;
 use App\Agent\AgentManager;
+use App\Agent\AgentPromptBuilder;
 use App\Conversation\ConversationManager;
+use App\Epic\EpicManager;
+use App\Item\ItemManager;
+use App\Memory\MemoryManager;
 use App\Project\ProjectManager;
 use App\Prompts\PromptLoader;
-use App\Skills\SkillRegistry;
 use App\Skills\McpConfigGenerator;
-use Hyperf\Di\Annotation\Inject;
+use App\Skills\SkillRegistry;
+use App\StateMachine\TaskManager;
+use App\StateMachine\TaskState;
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
+use Throwable;
+
 use function Hyperf\Support\env;
 
+/**
+ * Central abstraction for executing Claude CLI processes within Swoole coroutines.
+ *
+ * Builds CLI commands with proper arguments, manages environment variables,
+ * handles process lifecycle (execution, timeout, retry), and parses output
+ * into task results with memory/work-item extraction.
+ */
 class ProcessManager
 {
     #[Inject]
@@ -73,12 +83,13 @@ class ProcessManager
         \Swoole\Coroutine::create(function () use ($taskId) {
             try {
                 $this->runTask($taskId);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("Task {$taskId} failed: {$e->getMessage()}");
+
                 try {
                     $this->taskManager->setTaskError($taskId, $e->getMessage());
                     $this->taskManager->transition($taskId, TaskState::FAILED);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Best effort
                 }
             }
@@ -98,12 +109,13 @@ class ProcessManager
                     $task = $this->taskManager->getTask($taskId);
                     $onComplete($task);
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->error("Task {$taskId} failed: {$e->getMessage()}");
+
                 try {
                     $this->taskManager->setTaskError($taskId, $e->getMessage());
                     $this->taskManager->transition($taskId, TaskState::FAILED);
-                } catch (\Throwable) {
+                } catch (Throwable) {
                     // Best effort
                 }
                 if ($onComplete !== null) {
@@ -122,12 +134,12 @@ class ProcessManager
     {
         $parentTask = $this->taskManager->getTask($parentTaskId);
         if (!$parentTask) {
-            throw new \RuntimeException("Parent task {$parentTaskId} not found");
+            throw new RuntimeException("Parent task {$parentTaskId} not found");
         }
 
         $claudeSessionId = $parentTask['claude_session_id'] ?? '';
         if ($claudeSessionId === '') {
-            throw new \RuntimeException("Parent task {$parentTaskId} has no claude_session_id to resume");
+            throw new RuntimeException("Parent task {$parentTaskId} has no claude_session_id to resume");
         }
 
         // Create new task with the claude session ID as session_id (so buildCommand adds --resume)
@@ -146,12 +158,12 @@ class ProcessManager
     {
         $parentTask = $this->taskManager->getTask($parentTaskId);
         if (!$parentTask) {
-            throw new \RuntimeException("Parent task {$parentTaskId} not found");
+            throw new RuntimeException("Parent task {$parentTaskId} not found");
         }
 
         $claudeSessionId = $parentTask['claude_session_id'] ?? '';
         if ($claudeSessionId === '') {
-            throw new \RuntimeException("Parent task {$parentTaskId} has no claude_session_id to resume");
+            throw new RuntimeException("Parent task {$parentTaskId} has no claude_session_id to resume");
         }
 
         $taskId = $this->taskManager->createTask($prompt, $claudeSessionId, $options);
@@ -166,7 +178,7 @@ class ProcessManager
     {
         $task = $this->taskManager->getTask($taskId);
         if (!$task) {
-            throw new \RuntimeException("Task {$taskId} not found");
+            throw new RuntimeException("Task {$taskId} not found");
         }
 
         $this->taskManager->transition($taskId, TaskState::RUNNING);
@@ -194,7 +206,7 @@ class ProcessManager
                 }
             }
             if (!empty($imageRefs)) {
-                $task['prompt'] = "Image files attached: " . implode(', ', $imageRefs) . "\n\n" . ($task['prompt'] ?? '');
+                $task['prompt'] = 'Image files attached: ' . implode(', ', $imageRefs) . "\n\n" . ($task['prompt'] ?? '');
             }
             // Remove images from options to avoid storing large base64 in Redis
             unset($options['images']);
@@ -299,7 +311,7 @@ class ProcessManager
         $taskStartTime = time();
 
         // Use Swoole\Coroutine\System::exec which works properly in coroutines
-        $result = \Swoole\Coroutine\System::exec($fullCommand, true);
+        $result = \Swoole\Coroutine\System::exec($fullCommand, true); // sast-ignore: this IS the centralized process execution abstraction layer
 
         $stdout = $result['output'] ?? '';
         $exitCode = $result['code'] ?? -1;
@@ -328,10 +340,11 @@ class ProcessManager
             $this->logger->warning("Task {$taskId} timed out after {$timeout}s");
             $this->taskManager->setTaskError($taskId, "Task timed out after {$timeout} seconds");
             $this->taskManager->transition($taskId, TaskState::FAILED);
+
             return;
         }
 
-        $this->logger->info("Task {$taskId} completed with exit code {$exitCode}, stdout=" . strlen($stdout) . " bytes, stderr=" . strlen($stderr) . " bytes");
+        $this->logger->info("Task {$taskId} completed with exit code {$exitCode}, stdout=" . strlen($stdout) . ' bytes, stderr=' . strlen($stderr) . ' bytes');
         if (strlen($stdout) === 0) {
             $this->logger->warning("Task {$taskId}: empty stdout! stderr preview: " . mb_substr($stderr, 0, 500));
         }
@@ -353,7 +366,7 @@ class ProcessManager
                         $mem['category'],
                         $mem['content'],
                         $mem['importance'],
-                        'inline'
+                        'inline',
                     );
                 }
                 $resultText = $extracted['cleaned'];
@@ -379,7 +392,7 @@ class ProcessManager
                             $conversationId,
                         );
                         $this->logger->info("Created work item from inline tag: {$wi['title']}");
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         $this->logger->warning("Failed to create inline work item: {$e->getMessage()}");
                     }
                 }
@@ -427,8 +440,9 @@ class ProcessManager
                 // Clear session_id so buildCommand won't add --resume, update the prompt
                 $this->taskManager->resetTaskForRetry($taskId, $newPrompt);
 
-                $this->logger->info("Task {$taskId}: retrying as fresh session with " . count($historyLines) . " turns of history");
+                $this->logger->info("Task {$taskId}: retrying as fresh session with " . count($historyLines) . ' turns of history');
                 $this->runTask($taskId, $externalStderrCallback);
+
                 return;
             }
 
@@ -450,9 +464,13 @@ class ProcessManager
      * parent blocks reading stdout while child blocks writing stderr. stream_select() reads
      * from whichever pipe has data, preventing the deadlock.
      *
+     * @param resource $stdout
+     * @param resource $stderr
+     * @param resource $process
+     *
      * @return array{stdout: string, stderr: string, timed_out: bool}
      */
-    private function readPipesConcurrently($stdout, $stderr, $process, int $timeout, ?callable $onStderrChunk = null): array
+    private function readPipesConcurrently(mixed $stdout, mixed $stderr, mixed $process, int $timeout, ?callable $onStderrChunk = null): array
     {
         stream_set_blocking($stdout, false);
         stream_set_blocking($stderr, false);
@@ -467,6 +485,7 @@ class ProcessManager
                 $remaining = $deadline - time();
                 if ($remaining <= 0) {
                     $this->killProcess($process);
+
                     return ['stdout' => $stdoutBuf, 'stderr' => $stderrBuf, 'timed_out' => true];
                 }
             }
@@ -532,8 +551,10 @@ class ProcessManager
 
     /**
      * Kill a process gracefully: SIGTERM first, then SIGKILL after 5s grace period.
+     *
+     * @param resource $process
      */
-    private function killProcess($process): void
+    private function killProcess(mixed $process): void
     {
         $status = proc_get_status($process);
         if (!$status['running']) {

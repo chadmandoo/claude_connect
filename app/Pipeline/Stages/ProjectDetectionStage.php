@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Pipeline\Stages;
 
+use App\Claude\ProcessManager;
 use App\Pipeline\PipelineContext;
 use App\Pipeline\PipelineStage;
-use App\StateMachine\TaskManager;
-use App\Claude\ProcessManager;
 use App\Project\ProjectManager;
+use App\StateMachine\TaskManager;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Pipeline stage that auto-detects whether a completed task is part of a larger project.
+ *
+ * Uses Claude Haiku to evaluate if the task has significant remaining work, and if so,
+ * automatically creates a new project for multi-step orchestrated execution.
+ */
 class ProjectDetectionStage implements PipelineStage
 {
     public function __construct(
@@ -20,7 +26,8 @@ class ProjectDetectionStage implements PipelineStage
         private readonly ProjectManager $projectManager,
         private readonly ConfigInterface $config,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {
@@ -38,6 +45,7 @@ class ProjectDetectionStage implements PipelineStage
         }
 
         $task = $context->task;
+
         return ($task['prompt'] ?? '') !== '' && ($task['result'] ?? '') !== '';
     }
 
@@ -48,16 +56,16 @@ class ProjectDetectionStage implements PipelineStage
         $truncatedResult = mb_substr($task['result'] ?? '', 0, 1000);
 
         $evalPrompt = <<<EVAL
-Analyze this task completion and determine if it's part of a larger project with remaining work.
+            Analyze this task completion and determine if it's part of a larger project with remaining work.
 
-User asked: {$truncatedPrompt}
-Result: {$truncatedResult}
+            User asked: {$truncatedPrompt}
+            Result: {$truncatedResult}
 
-Respond ONLY with valid JSON:
-{"is_project": true/false, "reason": "brief explanation"}
+            Respond ONLY with valid JSON:
+            {"is_project": true/false, "reason": "brief explanation"}
 
-Return is_project=true ONLY if the completed task clearly has significant remaining work that would benefit from multi-step automated execution (e.g., "build me an app" where only scaffolding was done). Return false for simple questions, lookups, single-file edits, or tasks that are genuinely complete.
-EVAL;
+            Return is_project=true ONLY if the completed task clearly has significant remaining work that would benefit from multi-step automated execution (e.g., "build me an app" where only scaffolding was done). Return false for simple questions, lookups, single-file edits, or tasks that are genuinely complete.
+            EVAL;
 
         $evalTaskId = $this->taskManager->createTask($evalPrompt, null, [
             'source' => 'extraction',
@@ -88,6 +96,7 @@ EVAL;
                         return $this->createProject($context);
                     }
                 }
+
                 return ['success' => true, 'is_project' => false];
             }
 
@@ -114,7 +123,7 @@ EVAL;
                 'max_iterations' => (int) $this->config->get('mcp.project.max_iterations', 20),
                 'max_budget_usd' => (string) $this->config->get('mcp.project.max_budget_usd', 10.00),
                 'checkpoint_interval' => (int) $this->config->get('mcp.project.checkpoint_interval', 5),
-            ]
+            ],
         );
         $this->projectManager->setActiveProject($projectId);
 

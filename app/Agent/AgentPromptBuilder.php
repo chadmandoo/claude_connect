@@ -10,6 +10,10 @@ use App\StateMachine\TaskManager;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Builds composite system prompts for agents by combining the agent's base prompt
+ * with contextual data such as project lists, recent tasks, user memory, and available agents.
+ */
 class AgentPromptBuilder
 {
     #[Inject]
@@ -71,6 +75,7 @@ class AgentPromptBuilder
         $recentTasks = $this->taskManager->listTasks(null, 5);
         $supervisorTasks = array_filter($recentTasks, function ($t) {
             $options = json_decode($t['options'] ?? '{}', true);
+
             return ($options['dispatch_mode'] ?? '') === 'supervisor';
         });
 
@@ -102,7 +107,7 @@ class AgentPromptBuilder
         // Available agents awareness
         $allAgents = $this->agentManager->listAgents();
         $currentSlug = $agent['slug'] ?? '';
-        $otherAgents = array_filter($allAgents, fn($a) => ($a['slug'] ?? '') !== $currentSlug);
+        $otherAgents = array_filter($allAgents, fn ($a) => ($a['slug'] ?? '') !== $currentSlug);
         if (!empty($otherAgents)) {
             $agentLines = [];
             foreach ($otherAgents as $a) {

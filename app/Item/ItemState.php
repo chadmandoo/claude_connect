@@ -6,13 +6,6 @@ namespace App\Item;
 
 enum ItemState: string
 {
-    case OPEN = 'open';
-    case IN_PROGRESS = 'in_progress';
-    case REVIEW = 'review';
-    case BLOCKED = 'blocked';
-    case DONE = 'done';
-    case CANCELLED = 'cancelled';
-
     public function allowedTransitions(): array
     {
         return match ($this) {
@@ -34,4 +27,10 @@ enum ItemState: string
     {
         return $this === self::CANCELLED;
     }
+    case OPEN = 'open';
+    case IN_PROGRESS = 'in_progress';
+    case REVIEW = 'review';
+    case BLOCKED = 'blocked';
+    case DONE = 'done';
+    case CANCELLED = 'cancelled';
 }

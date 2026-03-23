@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Skills;
 
-use App\Skills\SkillRegistry;
 use App\Skills\BuiltinSkills;
+use App\Skills\SkillRegistry;
 use App\Storage\PostgresStore;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -13,14 +13,23 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for SkillRegistry.
+ *
+ * Covers: global skill registration, listing skills by scope (global and builtin),
+ * skill removal, and merging all scopes (builtin + global + user) for a given user.
+ */
 class SkillRegistryTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private SkillRegistry $registry;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private BuiltinSkills|Mockery\MockInterface $builtinSkills;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void

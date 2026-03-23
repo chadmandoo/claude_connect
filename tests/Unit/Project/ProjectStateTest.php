@@ -6,7 +6,15 @@ namespace Tests\Unit\Project;
 
 use App\Project\ProjectState;
 use PHPUnit\Framework\TestCase;
+use ValueError;
 
+/**
+ * Tests for ProjectState enum.
+ *
+ * Covers: string values for all states (planning through workspace), from() construction,
+ * exhaustive transition validation, terminal state detection, isRunnable checks, and
+ * isWorkspace identification.
+ */
 class ProjectStateTest extends TestCase
 {
     public function testEnumValues(): void
@@ -38,7 +46,7 @@ class ProjectStateTest extends TestCase
 
     public function testFromInvalidStringThrows(): void
     {
-        $this->expectException(\ValueError::class);
+        $this->expectException(ValueError::class);
         ProjectState::from('invalid');
     }
 

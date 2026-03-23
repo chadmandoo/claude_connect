@@ -6,21 +6,17 @@ namespace App\Controller;
 
 use App\Web\WebAuthManager;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpMessage\Stream\SwooleStream;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
-use Hyperf\HttpMessage\Stream\SwooleStream;
+use Psr\Http\Message\ResponseInterface as PsrResponseInterface;
 
+/**
+ * HTTP controller for the web frontend: serves the SPA index, static assets with ETag caching,
+ * SPA catch-all routing, and password-based authentication.
+ */
 class WebController
 {
-    #[Inject]
-    private WebAuthManager $authManager;
-
-    #[Inject]
-    private RequestInterface $request;
-
-    #[Inject]
-    private ResponseInterface $response;
-
     private const MIME_TYPES = [
         'html' => 'text/html; charset=utf-8',
         'css' => 'text/css; charset=utf-8',
@@ -35,7 +31,16 @@ class WebController
         'woff2' => 'font/woff2',
     ];
 
-    public function index()
+    #[Inject]
+    private WebAuthManager $authManager;
+
+    #[Inject]
+    private RequestInterface $request;
+
+    #[Inject]
+    private ResponseInterface $response;
+
+    public function index(): PsrResponseInterface
     {
         $path = BASE_PATH . '/public/index.html';
         if (!file_exists($path)) {
@@ -49,7 +54,7 @@ class WebController
             ->withBody(new SwooleStream(file_get_contents($path)));
     }
 
-    public function asset(string $file)
+    public function asset(string $file): PsrResponseInterface
     {
         // Sanitize: prevent directory traversal while allowing subdirectories
         $file = ltrim($file, '/');
@@ -66,7 +71,7 @@ class WebController
         $mime = self::MIME_TYPES[$ext] ?? 'application/octet-stream';
 
         // Hashed assets can be cached long-term
-        $cacheControl = in_array($ext, ['html']) ? 'no-cache' : 'public, max-age=31536000, immutable';
+        $cacheControl = in_array($ext, ['html'], true) ? 'no-cache' : 'public, max-age=31536000, immutable';
         $etag = '"' . md5_file($path) . '"';
 
         // Return 304 if unchanged
@@ -86,12 +91,12 @@ class WebController
     /**
      * SPA catch-all: serve index.html for any unmatched route so client-side routing works.
      */
-    public function spa()
+    public function spa(): PsrResponseInterface
     {
         return $this->index();
     }
 
-    public function authenticate()
+    public function authenticate(): PsrResponseInterface
     {
         $body = json_decode($this->request->getBody()->getContents(), true);
         $password = $body['password'] ?? '';

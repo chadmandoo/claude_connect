@@ -13,13 +13,21 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for ConversationManager.
+ *
+ * Covers: conversation creation with UUID, retrieval (found and not found),
+ * adding turns with turn count increment, completing conversations, and listing.
+ */
 class ConversationManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private ConversationManager $manager;
+
     private PostgresStore|Mockery\MockInterface $store;
+
     private LoggerInterface|Mockery\MockInterface $logger;
 
     protected function setUp(): void
@@ -46,7 +54,7 @@ class ConversationManagerTest extends TestCase
         $this->assertIsString($result);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
-            $result
+            $result,
         );
     }
 

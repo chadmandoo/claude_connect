@@ -9,6 +9,7 @@ use App\Storage\SwooleTableCache;
 use Hyperf\Di\Annotation\Inject;
 use Psr\Log\LoggerInterface;
 use Swoole\WebSocket\Server;
+use Throwable;
 
 /**
  * Posts system notifications to a dedicated #system channel.
@@ -71,7 +72,7 @@ class SystemChannel
                 if ($server instanceof Server) {
                     $this->broadcastToClients($server, $message);
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // No server available, message is still saved in Redis
             }
         }
@@ -108,8 +109,13 @@ class SystemChannel
     {
         $this->post(
             "📊 **Supervisor Status** — {$running} running, {$pending} pending, {$completed} completed today",
-            'Supervisor'
+            'Supervisor',
         );
+    }
+
+    public function getChannelId(): string
+    {
+        return self::CHANNEL_ID;
     }
 
     private function broadcastToClients(Server $server, array $message): void
@@ -126,14 +132,9 @@ class SystemChannel
                 if ($server->isEstablished((int) $fd)) {
                     $server->push((int) $fd, $payload);
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // ignore
             }
         }
-    }
-
-    public function getChannelId(): string
-    {
-        return self::CHANNEL_ID;
     }
 }

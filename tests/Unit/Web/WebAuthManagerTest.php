@@ -4,21 +4,29 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Web;
 
-use App\Web\WebAuthManager;
 use App\Storage\RedisStore;
+use App\Web\WebAuthManager;
 use Hyperf\Contract\ConfigInterface;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tests\Helpers\ReflectionHelper;
 
+/**
+ * Tests for WebAuthManager.
+ *
+ * Covers: password authentication (correct, wrong, empty config), token validation
+ * (valid, invalid, empty), and user ID retrieval with default fallback.
+ */
 class WebAuthManagerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     use ReflectionHelper;
 
     private WebAuthManager $auth;
+
     private RedisStore|Mockery\MockInterface $redis;
+
     private ConfigInterface|Mockery\MockInterface $config;
 
     protected function setUp(): void

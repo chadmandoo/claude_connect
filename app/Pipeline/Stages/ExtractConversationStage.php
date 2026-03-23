@@ -4,16 +4,24 @@ declare(strict_types=1);
 
 namespace App\Pipeline\Stages;
 
-use App\Pipeline\PipelineContext;
-use App\Pipeline\PipelineStage;
-use App\StateMachine\TaskManager;
 use App\Claude\ProcessManager;
-use App\Memory\MemoryManager;
 use App\Conversation\ConversationManager;
 use App\Item\ItemManager;
+use App\Memory\MemoryManager;
+use App\Pipeline\PipelineContext;
+use App\Pipeline\PipelineStage;
 use App\Prompts\PromptLoader;
+use App\StateMachine\TaskManager;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
+/**
+ * Pipeline stage that uses Claude Haiku to extract structured data from a conversation.
+ *
+ * Generates summaries, key takeaways, memories, and work items from completed task
+ * exchanges using type-specific extraction prompts, then routes extracted data to
+ * the appropriate storage (memory manager, conversation manager, item manager).
+ */
 class ExtractConversationStage implements PipelineStage
 {
     public function __construct(
@@ -24,7 +32,8 @@ class ExtractConversationStage implements PipelineStage
         private readonly ItemManager $itemManager,
         private readonly PromptLoader $promptLoader,
         private readonly LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function name(): string
     {
@@ -58,7 +67,7 @@ class ExtractConversationStage implements PipelineStage
         $extractionPrompt = str_replace(
             ['{prompt}', '{result}'],
             [$prompt, $result],
-            $extractionTemplate
+            $extractionTemplate,
         );
 
         $extractionTaskId = $this->taskManager->createTask($extractionPrompt, null, [
@@ -85,6 +94,7 @@ class ExtractConversationStage implements PipelineStage
             if ($state === 'completed') {
                 $extractResult = $extractionTask['result'] ?? '';
                 $this->processExtraction($userId, $conversationId, $conversationType, $extractResult);
+
                 return ['success' => true];
             }
 
@@ -156,7 +166,7 @@ class ExtractConversationStage implements PipelineStage
         if ($projectId !== 'general' && !empty($data['work_items']) && is_array($data['work_items'])) {
             $existingItems = $this->itemManager->listItemsByProject($projectId);
             $existingTitles = array_map(
-                fn(array $item) => mb_strtolower($item['title'] ?? ''),
+                fn (array $item) => mb_strtolower($item['title'] ?? ''),
                 $existingItems,
             );
 
@@ -182,7 +192,7 @@ class ExtractConversationStage implements PipelineStage
                     $this->itemManager->createItem($projectId, $title, null, $description, $priority, $conversationId);
                     $existingTitles[] = mb_strtolower($title);
                     $this->logger->info("Created work item from extraction: {$title}");
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     $this->logger->warning("Failed to create extracted work item: {$e->getMessage()}");
                 }
             }
